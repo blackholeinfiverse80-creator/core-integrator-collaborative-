@@ -4,27 +4,33 @@ services:
     env: python
     plan: starter
     region: oregon
-    root: prompt-runner01
+    root: .
     buildCommand: pip install -r requirements.txt
-    startCommand: python run_server.py $PORT
+    startCommand: python prompt-runner01/run_server.py
     envVars:
+      - key: PROMPT_RUNNER_PORT
+        value: "8003"
       - key: GROQ_API_KEY
-        value: "REPLACE_WITH_YOUR_GROQ_API_KEY"
+        sync: false
       - key: CREATOR_CORE_URL
         value: "https://creator-core.onrender.com/creator-core/generate-blueprint"
+
   - type: web_service
     name: creator-core
     env: python
     plan: starter
     region: oregon
-    root: creator-core/Core-Integrator-Sprint-1.1
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    root: .
+    buildCommand: pip install -r requirements.txt && pip install -r creator-core/Core-Integrator-Sprint-1.1/requirements.txt
+    startCommand: uvicorn creator-core.Core-Integrator-Sprint-1.1.main:app --host 0.0.0.0 --port $PORT
     envVars:
+      - key: PYTHONPATH
+        value: ".:./src:./creator-core/Core-Integrator-Sprint-1.1"
       - key: BHIV_CORE_URL
         value: "https://bhiv-core.onrender.com/core"
       - key: BUCKET_URL
         value: "https://bhiv-bucket.onrender.com"
+
   - type: web_service
     name: bhiv-core
     env: python
@@ -34,10 +40,11 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
+      - key: PYTHONPATH
+        value: ".:./src"
       - key: USE_MONGODB
         value: "false"
-      - key: INTEGRATOR_USE_NOOPUR
-        value: "false"
+
   - type: web_service
     name: bhiv-bucket
     env: python
@@ -46,6 +53,7 @@ services:
     root: .
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn bhiv_bucket:bucket_app --host 0.0.0.0 --port $PORT
+
   - type: web_service
     name: integration-bridge
     env: python
