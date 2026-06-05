@@ -1,0 +1,119 @@
+# Core Integrator Docker Compose Configuration
+# Multi-container setup for complete system deployment
+
+version: '3.8'
+
+services:
+  # Noopur AI Backend Service
+  noopur:
+    build:
+      context: ./external/CreatorCore-Task
+      dockerfile: Dockerfile
+    container_name: noopur-service
+    ports:
+      - "5001:5001"
+    environment:
+      - FLASK_ENV=production
+      - FLASK_DEBUG=false
+    volumes:
+      - noopur_data:/app/instance
+    networks:
+      - integrator-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/history"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  # Mock CreatorCore Service
+  mock-creatorcore:
+    build:
+      context: .
+      dockerfile: Dockerfile.mock
+    container_name: mock-creatorcore
+    ports:
+      - "5002:5002"
+    environment:
+      - FLASK_ENV=production
+      - FLASK_DEBUG=false
+    networks:
+      - integrator-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5002/system/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+
+  # Core Integrator Main Service
+  core-integrator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: core-integrator
+    ports:
+      - "8000:8000"
+    environment:
+      - INTEGRATOR_USE_NOOPUR=true
+      - NOOPUR_BASE_URL=http://noopur:5001
+      - CREATORCORE_BASE_URL=http://mock-creatorcore:5002
+      - DB_PATH=db/context.db
+      - NONCE_DB_PATH=db/nonce_store.db
+      - USE_MONGODB=false
+    volumes:
+      - integrator_data:/app/db
+      - integrator_logs:/app/logs
+    networks:
+      - integrator-network
+    depends_on:
+      noopur:
+        condition: service_healthy
+      mock-creatorcore:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "from src.utils.bridge_client import BridgeClient; print('OK' if BridgeClient('http://mock-creatorcore:5002').is_healthy() else exit(1))"]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+
+  # MongoDB (Optional - for production)
+  mongodb:
+    image: mongo:7.0
+    container_name: integrator-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+      - MONGO_INITDB_DATABASE=core_integrator
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - integrator-network
+    profiles:
+      - production
+    restart: unless-stopped
+
+# Named volumes for data persistence
+volumes:
+  noopur_data:
+    driver: local
+  integrator_data:
+    driver: local
+  integrator_logs:
+    driver: local
+  mongodb_data:
+    driver: local
+
+# Custom network for service communication
+networks:
+  integrator-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

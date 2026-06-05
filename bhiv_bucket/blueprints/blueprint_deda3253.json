@@ -1,0 +1,31 @@
+{
+  "artifact_id": "blueprint_deda3253",
+  "artifact_type": "blueprint",
+  "trace_id": "trace_62c7f03ec732",
+  "timestamp": "2026-05-29T12:01:05.069931+00:00",
+  "data": {
+    "blueprint": {
+      "instruction_id": "90cc7154-9826-441a-b4d2-c435c1653e7b",
+      "origin": "creator_core",
+      "intent_type": "product_description",
+      "target_product": "creator",
+      "payload": {
+        "blueprint_type": "content_blueprint",
+        "product_target": "creator",
+        "content_type": "step_by_step_guide",
+        "title": "Ai Assistant Tool",
+        "outline": [
+          "product_research",
+          "description_drafting",
+          "content_optimization"
+        ]
+      },
+      "schema_version": "1.0",
+      "timestamp": "2026-05-29T12:01:05.058606+00:00"
+    }
+  },
+  "metadata": {
+    "size_bytes": 470,
+    "schema_version": "1.0.0"
+  }
+}

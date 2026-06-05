@@ -1,0 +1,65 @@
+services:
+  - type: web_service
+    name: prompt-runner
+    env: python
+    plan: starter
+    region: oregon
+    root: prompt-runner01
+    buildCommand: pip install -r requirements.txt
+    startCommand: python run_server.py $PORT
+    envVars:
+      - key: GROQ_API_KEY
+        value: "REPLACE_WITH_YOUR_GROQ_API_KEY"
+      - key: CREATOR_CORE_URL
+        value: "https://creator-core.onrender.com/creator-core/generate-blueprint"
+  - type: web_service
+    name: creator-core
+    env: python
+    plan: starter
+    region: oregon
+    root: creator-core/Core-Integrator-Sprint-1.1
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: BHIV_CORE_URL
+        value: "https://bhiv-core.onrender.com/core"
+      - key: BUCKET_URL
+        value: "https://bhiv-bucket.onrender.com"
+  - type: web_service
+    name: bhiv-core
+    env: python
+    plan: starter
+    region: oregon
+    root: .
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: USE_MONGODB
+        value: "false"
+      - key: INTEGRATOR_USE_NOOPUR
+        value: "false"
+  - type: web_service
+    name: bhiv-bucket
+    env: python
+    plan: starter
+    region: oregon
+    root: .
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn bhiv_bucket:bucket_app --host 0.0.0.0 --port $PORT
+  - type: web_service
+    name: integration-bridge
+    env: python
+    plan: starter
+    region: oregon
+    root: .
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn integration_bridge_v2:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PROMPT_RUNNER_URL
+        value: "https://prompt-runner.onrender.com"
+      - key: CREATOR_CORE_URL
+        value: "https://creator-core.onrender.com/creator-core/generate-blueprint"
+      - key: BHIV_CORE_URL
+        value: "https://bhiv-core.onrender.com/core"
+      - key: BUCKET_URL
+        value: "https://bhiv-bucket.onrender.com"
