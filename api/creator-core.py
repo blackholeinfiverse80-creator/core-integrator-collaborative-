@@ -7,9 +7,11 @@ import os
 import sys
 from pathlib import Path
 
-# Add project root to path
+# Add project root and necessary subdirectories to path
 project_root = str(Path(__file__).parent.parent)
 sys.path.insert(0, project_root)
+sys.path.insert(0, str(Path(project_root) / "creator-core" / "Core-Integrator-Sprint-1.1"))
+sys.path.insert(0, str(Path(project_root) / "src"))
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware

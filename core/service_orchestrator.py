@@ -211,6 +211,13 @@ class ServiceOrchestrator:
             if port:
                 env[f"{service_name.upper()}_PORT"] = str(port)
             
+            # Add root and src to PYTHONPATH
+            root_dir = str(Path(__file__).parent.parent)
+            src_dir = str(Path(root_dir) / "src")
+            current_pythonpath = env.get("PYTHONPATH", "")
+            new_pythonpath = os.pathsep.join(filter(None, [root_dir, src_dir, current_pythonpath]))
+            env["PYTHONPATH"] = new_pythonpath
+            
             # Start process
             process = subprocess.Popen(
                 [sys.executable, runner_script],
