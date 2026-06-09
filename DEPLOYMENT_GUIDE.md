@@ -1,255 +1,203 @@
-# BHIV Deployment Guide
+﻿# Deployment Guide
 
-This guide explains how to deploy each BHIV service independently.
+This guide explains how to deploy the BHIV Core-Integrator system locally, remotely, and in mixed environments.
 
-## Service Architecture
+## Local deployment
 
-```
-┌─────────────────┐
-│  Prompt Runner  │ Port 8003 - Converts prompts to instructions
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Creator Core   │ Port 8000 - Generates blueprints
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│   BHIV Core     │ Port 8001 - Executes blueprints
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│     Bucket      │ Port 8005 - Stores artifacts
-└─────────────────┘
+### Prerequisites
 
-┌─────────────────┐
-│ Integration     │ Port 8004 - Orchestrates all services
-│ Bridge          │
-└─────────────────┘
-```
+- Python 3.11 or higher
+- `pip` installed
+- Available ports: `8000`, `8001`, `8003`, `8004`, `8005`
+- Optional: `uvicorn` for FastAPI services
 
-## Independent Deployment
-
-Each service can be deployed separately on different servers/ports.
-
-### 1. Environment Variables for Each Service
-
-Create a `.env` file for each service:
-
-#### Prompt Runner (.env)
-```bash
-# Prompt Runner Configuration
-GROQ_API_KEY=your_groq_api_key_here
-PORT=8003
-
-# Optional: Creator Core URL (if calling /run endpoint)
-CREATOR_CORE_URL=http://your-creator-core-host:8000
-```
-
-#### Creator Core (.env)
-```bash
-# Creator Core Configuration
-GROQ_API_KEY=your_groq_api_key_here
-PORT=8000
-```
-
-#### BHIV Core (.env)
-```bash
-# BHIV Core Configuration
-PORT=8001
-
-# Database (choose one)
-USE_MONGODB=false
-DB_PATH=data/context.db
-
-# OR for MongoDB
-# USE_MONGODB=true
-# MONGODB_CONNECTION_STRING=mongodb://your-mongodb-host:27017
-# MONGODB_DATABASE_NAME=bhiv_production
-
-# Optional: Noopur Integration
-INTEGRATOR_USE_NOOPUR=false
-```
-
-#### Bucket (.env)
-```bash
-# Bucket Configuration
-PORT=8005
-STORAGE_PATH=data/artifacts
-```
-
-#### Integration Bridge (.env)
-```bash
-# Integration Bridge Configuration
-PORT=8004
-
-# Service URLs - UPDATE THESE FOR YOUR DEPLOYMENT
-PROMPT_RUNNER_URL=http://your-prompt-runner-host:8003
-CREATOR_CORE_URL=http://your-creator-core-host:8000
-BHIV_CORE_URL=http://your-bhiv-core-host:8001
-BUCKET_URL=http://your-bucket-host:8005
-```
-
-### 2. Deploy Individual Services
-
-#### Deploy Prompt Runner
-```bash
-# Prompt Runner is deployed separately outside this repository.
-# Configure PROMPT_RUNNER_URL to point to your external Prompt Runner host.
-```
-
-#### Deploy Creator Core
-```bash
-cd creator-core/Core-Integrator-Sprint-1.1
-pip install -r requirements.txt
-python main.py
-```
-
-#### Deploy BHIV Core
-```bash
-pip install -r requirements.txt
-python main.py
-```
-
-#### Deploy Bucket
-```bash
-python bhiv_bucket.py
-```
-
-#### Deploy Integration Bridge
-1. Copy the example env file:
-```bash
-# Linux / macOS
-cp .env.integration_bridge.example .env.integration_bridge
-
-# Windows PowerShell
-Copy-Item .env.integration_bridge.example .env.integration_bridge
-```
-2. Edit `.env.integration_bridge` to match your deployed service URLs.
-3. Start the bridge:
-```bash
-python start_integration_bridge.py
-```
-
-### 3. Test Individual Services
-
-Each service has a health endpoint:
+### Install dependencies
 
 ```bash
-# Prompt Runner
-curl http://your-host:8003/health
-
-# Creator Core
-curl http://your-host:8000/
-
-# BHIV Core
-curl http://your-host:8001/
-
-# Bucket
-curl http://your-host:8005/bucket/stats
-
-# Integration Bridge
-curl http://your-host:8004/pipeline/health
+python -m pip install -r requirements.txt
+python -m pip install -r creator-core/Core-Integrator-Sprint-1.1/requirements.txt
 ```
 
-### 4. Test Full Pipeline
+### Startup order
 
-Execute the full pipeline through Integration Bridge:
+1. `BHIV Bucket` — `python bhiv_bucket.py`
+2. `Creator Core` — `cd creator-core/Core-Integrator-Sprint-1.1 && python main.py`
+3. `BHIV Core` — `python main.py`
+4. `Prompt Runner` — `python prompt-runner01/run_server.py`
+5. `Integration Bridge` — `python integration_bridge.py`
+
+Alternative startup commands:
 
 ```bash
-curl -X POST http://your-bridge-host:8004/pipeline/execute \
-  -H "Content-Type: application/json" \
-  -d '{"prompt": "Design a residential building for Mumbai"}'
+python start_all.py
 ```
 
-## Cloud Deployment Examples
+or:
 
-### AWS EC2 / DigitalOcean / GCP
-
-1. **Deploy each service on separate instances:**
-   ```
-   Instance 1: Prompt Runner (Port 8003)
-   Instance 2: Creator Core (Port 8000)
-   Instance 3: BHIV Core (Port 8001)
-   Instance 4: Bucket (Port 8005)
-   Instance 5: Integration Bridge (Port 8004)
-   ```
-
-2. **Update environment variables:**
-   ```bash
-   # On Integration Bridge instance
-   export PROMPT_RUNNER_URL=http://instance1-ip:8003
-   export CREATOR_CORE_URL=http://instance2-ip:8000
-   export BHIV_CORE_URL=http://instance3-ip:8001
-   export BUCKET_URL=http://instance4-ip:8005
-   ```
-
-3. **Use MongoDB Atlas for database:**
-   ```bash
-   # On BHIV Core instance
-   export USE_MONGODB=true
-   export MONGODB_CONNECTION_STRING=mongodb+srv://user:pass@cluster.mongodb.net
-   ```
-
-### Docker Deployment
-
-Each service can be containerized:
-
-```dockerfile
-# Example for BHIV Core
-FROM python:3.9-slim
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-COPY . .
-EXPOSE 8001
-CMD ["python", "main.py"]
+```bash
+python deploy_and_test.py
 ```
 
-### Kubernetes Deployment
+### Environment variables
 
-Deploy as separate pods with services:
+Key variables used by the system:
 
-```yaml
-# Example service definition
-apiVersion: v1
-kind: Service
-metadata:
-  name: bhiv-core
-spec:
-  selector:
-    app: bhiv-core
-  ports:
-  - port: 8001
-    targetPort: 8001
-```
+- `PROMPT_RUNNER_URL` — Prompt Runner URL (default `http://127.0.0.1:8003`)
+- `CREATOR_CORE_URL` — Creator Core URL (default `http://127.0.0.1:8000`)
+- `BHIV_CORE_URL` — BHIV Core URL (default `http://127.0.0.1:8001`)
+- `INTEGRATION_BRIDGE_URL` — Integration Bridge URL (default `http://127.0.0.1:8004`)
+- `BUCKET_URL` — Bucket URL (default `http://127.0.0.1:8005`)
+- `PORT` — service port override for Creator Core / BHIV Core
+- `HOST` — host binding for services
+- `DB_PATH` — path for BHIV Core database
+- `STORAGE_PATH` — artifact folder for Bucket
 
-## Production Checklist
+Use `.env`, `.env.integration_bridge`, or service-local env files to override default values.
 
-- [ ] Set all environment variables
-- [ ] Configure MongoDB (if using)
-- [ ] Set up SSL/TLS certificates
-- [ ] Configure firewall rules
-- [ ] Set up logging and monitoring
-- [ ] Configure health checks
-- [ ] Set up automatic restarts
-- [ ] Test service connectivity
+### Service ports
+
+| Service | Default Port |
+|---|---|
+| Creator Core | 8000 |
+| BHIV Core | 8001 |
+| Prompt Runner | 8003 |
+| Integration Bridge | 8004 |
+| BHIV Bucket | 8005 |
+| API Gateway | 8080 |
+
+### Health checks
+
+- Prompt Runner: `http://127.0.0.1:8003/health`
+- Creator Core: `http://127.0.0.1:8000/`
+- BHIV Core: `http://127.0.0.1:8001/`
+- Integration Bridge: `http://127.0.0.1:8004/pipeline/health`
+- BHIV Bucket: `http://127.0.0.1:8005/bucket/stats`
+
+### Common local deployment failures
+
+- Port collisions
+- Missing Python dependencies
+- Invalid or missing environment variables
+- Prompt Runner stub not matching expected response shape
+- Bucket storage folder permission issues
+
+### Recovery procedures
+
+1. Stop all services.
+2. Verify env variables and ports.
+3. Restart services in correct order.
+4. Run `python test_services.py`.
+5. Inspect logs and `bhiv_bucket/traces/`.
+
+---
+
+## Remote deployment
+
+### Supported files
+
+- `render.yaml` — Render deployment configuration
+- `vercel.json` — Vercel deployment configuration
+- `RENDER_DEPLOYMENT.md` — remote deployment notes
+- `VERCEL_DEPLOYMENT.md` — Vercel-specific notes
+
+### Remote deployment guidance
+
+- Services can be deployed individually on remote hosts.
+- Use HTTPS and secure endpoints.
+- Set service URLs in remote environment variables.
+- Ensure `PROMPT_RUNNER_URL`, `CREATOR_CORE_URL`, `BHIV_CORE_URL`, and `BUCKET_URL` match remote service locations.
+
+### Remote environment variables
+
+- `PROMPT_RUNNER_URL`
+- `CREATOR_CORE_URL`
+- `BHIV_CORE_URL`
+- `INTEGRATION_BRIDGE_URL`
+- `BUCKET_URL`
+- `PORT`
+- `HOST`
+- `DB_PATH`
+- `STORAGE_PATH`
+
+### Remote deployment risks
+
+- network latency
+- inconsistent environment configuration
+- missing or invalid service URL references
+- unsecured HTTP endpoints
+
+---
+
+## Mixed deployment
+
+Mixed deployment means some services run locally while others run remotely.
+
+### Example configuration
+
+- Local BHIV Core: `http://127.0.0.1:8001`
+- Remote Creator Core: `https://creator.example.com`
+- Remote Prompt Runner: `https://prompt-runner.example.com`
+- Local Bucket: `http://127.0.0.1:8005`
+- Local Integration Bridge: `http://127.0.0.1:8004`
+
+### Requirements
+
+- Remote endpoints must be reachable from the Integration Bridge process.
+- All service URLs must be updated consistently.
+- The prompt runner stub must be replaced if remote prompt generation is required.
+
+### Common mixed deployment failures
+
+- firewalls and routing issues
+- mismatched protocols (`http` vs `https`)
+- service URL misconfiguration
+- version mismatch between services
+
+---
+
+## Dependencies
+
+### Python dependencies
+
+- `requirements.txt` — core dependencies
+- `creator-core/Core-Integrator-Sprint-1.1/requirements.txt` — Creator Core dependencies
+- `requirements-vercel.txt` — Vercel deployment dependencies
+
+### Runtime dependencies
+
+- `uvicorn`
+- `fastapi`
+- `pydantic`
+- `requests`
+
+## Deployment checklist
+
+1. Install dependencies.
+2. Validate environment variables.
+3. Start Bucket.
+4. Start Creator Core.
+5. Start BHIV Core.
+6. Start Prompt Runner.
+7. Start Integration Bridge.
+8. Run health checks.
+9. Execute sample prompt.
+10. Confirm artifact chain exists in Bucket.
 
 ## Troubleshooting
 
-### Service Not Reachable
-1. Check if service is running: `curl http://host:port/health`
-2. Check firewall rules
-3. Verify environment variables
+### Service unreachable
 
-### Database Connection Failed
-1. Check MongoDB connection string
-2. Verify network connectivity
-3. Check credentials
+- Check process logs
+- Confirm port listening
+- Verify env configuration
 
-### Integration Bridge Errors
-1. Check all service URLs are correct
-2. Verify all services are healthy
-3. Check network connectivity between services
+### Data storage failure
+
+- Validate `STORAGE_PATH`
+- Check disk permissions and free space
+
+### Bridge or pipeline errors
+
+- Verify all upstream services are healthy
+- Confirm `trace_id` propagation and artifact storage
+- Inspect `bhiv_bucket/traces/` and service logs

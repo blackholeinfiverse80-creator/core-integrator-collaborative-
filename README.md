@@ -39,39 +39,47 @@ Integration Bridge (8004) ──→ Final Result
 ### 1. Start All Components
 
 ```bash
-# Option A: Use startup script (recommended)
-python start_bhiv_pipeline.py
+# Option A: Use the startup orchestration script (recommended)
+python start_all.py
+```
 
-# Option B: Manual startup (5 terminals)
+### 2. Start Services Manually
+
+```bash
 # Terminal 1: Prompt Runner
-# Start Prompt Runner from its separate deployment or IDE.
-# Make sure PROMPT_RUNNER_URL points to the external service.
+python prompt-runner01/run_server.py
 
 # Terminal 2: Creator Core
 cd creator-core/Core-Integrator-Sprint-1.1
 python main.py
 
 # Terminal 3: BHIV Core
-python -m uvicorn main:app --host 0.0.0.0 --port 8001
+cd ../../
+python main.py
 
 # Terminal 4: Integration Bridge
-# Copy .env.integration_bridge.example to .env.integration_bridge and update the URLs.
+copy .env.integration_bridge.example .env.integration_bridge
+# Edit .env.integration_bridge as needed
 python start_integration_bridge.py
 
 # Terminal 5: Bucket
 python bhiv_bucket.py
 ```
 
-### 2. Test the Pipeline
+### 3. Alternative Startup Options
 
 ```bash
-# Quick test
-python test_integration.py
+# Start all microservices in the correct order
+python start_services.py
+```
 
-# Full validation
-python validate_full_integration.py
+### 4. Test the Pipeline
 
-# Manual test
+```bash
+# Run the included service tests
+python test_services.py
+
+# Manual run
 curl -X POST http://localhost:8004/pipeline/execute \
   -H "Content-Type: application/json" \
   -d '{"prompt": "Design a residential building for Mumbai"}'

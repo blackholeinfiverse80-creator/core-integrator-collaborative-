@@ -50,6 +50,9 @@ logs/
 # Environment variables
 .env
 .env.local
+.env.integration_bridge
+.env.production
+.env.vercel
 
 # Temporary files
 *.tmp
