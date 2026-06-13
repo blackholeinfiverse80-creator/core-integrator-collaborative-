@@ -33,6 +33,14 @@ def validate_config() -> None:
     """Validate critical configuration on startup and fail fast if missing."""
     critical_env_vars = []
 
+    # Authentication
+    auth_enabled = os.getenv("AUTH_ENABLED", "true").lower() in ("1", "true", "yes")
+    if auth_enabled:
+        if not os.getenv("AUTH_SECRET_KEY"):
+            critical_env_vars.append("AUTH_SECRET_KEY")
+        if not os.getenv("AUTH_API_KEY"):
+            critical_env_vars.append("AUTH_API_KEY")
+
     # Check database configuration
     if USE_MONGODB and not MONGODB_CONNECTION_STRING:
         critical_env_vars.append("MONGODB_CONNECTION_STRING")

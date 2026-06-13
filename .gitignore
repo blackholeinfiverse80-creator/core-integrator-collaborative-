@@ -47,41 +47,24 @@ logs/
 *.sqlite
 *.sqlite3
 
-# Environment variables
+# Environment variables — NEVER commit real .env files
 .env
 .env.local
 .env.integration_bridge
 .env.production
 .env.vercel
+.env.*.local
 
-# Temporary files
-*.tmp
-*.temp
-temp/
+# Runtime data and databases
+*.db
+*.sqlite
+*.sqlite3
+data/
+db/creator_core_bucket/
+db/creator_core_telemetry/
+bhiv_bucket/
 
-# Node modules (if any)
-node_modules/
-
-# Coverage reports
-htmlcov/
-.coverage
-.coverage.*
-coverage.xml
-
-# Pytest
-.pytest_cache/
-
-# MyPy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# pyenv
-.python-version
-
-# Backup files
-*.bak
-*.backup
+# Logs
+*.log
+logs/
+creator_core.log

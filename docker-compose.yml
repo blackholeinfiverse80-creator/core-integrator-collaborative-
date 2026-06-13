@@ -6,9 +6,7 @@ version: '3.8'
 services:
   # Noopur AI Backend Service
   noopur:
-    build:
-      context: ./external/CreatorCore-Task
-      dockerfile: Dockerfile
+    image: python:3.11-slim
     container_name: noopur-service
     ports:
       - "5001:5001"
@@ -20,7 +18,7 @@ services:
     networks:
       - integrator-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5001/history"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5001/health')"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -41,7 +39,7 @@ services:
     networks:
       - integrator-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5002/system/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5002/system/health')"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -55,26 +53,23 @@ services:
       dockerfile: Dockerfile
     container_name: core-integrator
     ports:
-      - "8000:8000"
+      - "8001:8001"
+    env_file:
+      - .env
     environment:
-      - INTEGRATOR_USE_NOOPUR=true
-      - NOOPUR_BASE_URL=http://noopur:5001
-      - CREATORCORE_BASE_URL=http://mock-creatorcore:5002
-      - DB_PATH=db/context.db
-      - NONCE_DB_PATH=db/nonce_store.db
+      - INTEGRATOR_USE_NOOPUR=false
       - USE_MONGODB=false
+      - DB_PATH=db/context.db
     volumes:
       - integrator_data:/app/db
       - integrator_logs:/app/logs
     networks:
       - integrator-network
     depends_on:
-      noopur:
-        condition: service_healthy
       mock-creatorcore:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "python", "-c", "from src.utils.bridge_client import BridgeClient; print('OK' if BridgeClient('http://mock-creatorcore:5002').is_healthy() else exit(1))"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/system/health')"]
       interval: 30s
       timeout: 15s
       retries: 3
@@ -85,11 +80,12 @@ services:
   mongodb:
     image: mongo:7.0
     container_name: integrator-mongodb
-    ports:
-      - "27017:27017"
+    # No external port binding — only reachable within docker network
+    expose:
+      - "27017"
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_ROOT_PASSWORD=password
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
       - MONGO_INITDB_DATABASE=core_integrator
     volumes:
       - mongodb_data:/data/db

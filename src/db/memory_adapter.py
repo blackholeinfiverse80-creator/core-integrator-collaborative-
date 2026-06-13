@@ -4,6 +4,7 @@ from .memory import ContextMemory
 from ..utils.noopur_client import NoopurClient
 from config.config import INTEGRATOR_USE_NOOPUR
 import asyncio
+import concurrent.futures
 
 try:
     from .mongodb_adapter import MongoDBAdapter, PYMONGO_AVAILABLE
@@ -11,6 +12,23 @@ try:
 except ImportError:
     MongoDBAdapter = None
     MONGODB_AVAILABLE = False
+
+
+def _run_async(coro):
+    """Run an async coroutine safely regardless of whether an event loop is running."""
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = None
+
+    if loop and loop.is_running():
+        # We are inside a running loop (e.g. called from sync code spawned by FastAPI).
+        # Use a thread executor to avoid nesting event loops.
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            future = pool.submit(asyncio.run, coro)
+            return future.result()
+    else:
+        return asyncio.run(coro)
 
 
 class MemoryAdapter(ABC):
@@ -107,7 +125,7 @@ class RemoteNoopurAdapter(MemoryAdapter):
 
         # Run the async operation
         try:
-            asyncio.run(_store())
+            _run_async(_store())
         except Exception:
             pass
 
@@ -138,7 +156,7 @@ class RemoteNoopurAdapter(MemoryAdapter):
                 return []
 
         try:
-            return asyncio.run(_get_history())
+            return _run_async(_get_history())
         except Exception:
             return []
 
@@ -165,6 +183,6 @@ class RemoteNoopurAdapter(MemoryAdapter):
                 return []
 
         try:
-            return asyncio.run(_get_context())
+            return _run_async(_get_context())
         except Exception:
             return []

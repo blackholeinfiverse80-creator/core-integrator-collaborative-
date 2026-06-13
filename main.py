@@ -10,6 +10,8 @@ from src.core.gateway import Gateway
 from src.db.memory import ContextMemory
 from config.config import DB_PATH, validate_config, get_config_summary
 from src.utils.security_hardening import security_middleware, validate_user_request, security
+from src.utils.auth import auth_middleware, require_auth
+from src.utils.observability import new_trace_id, observability_middleware
 import asyncio
 
 # Validate configuration on startup
@@ -34,15 +36,18 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Add security middleware
+# Middleware order: last-added runs first in FastAPI (LIFO).
+# Execution order: observability → auth → security
 app.middleware("http")(security_middleware)
+app.middleware("http")(auth_middleware)
+app.middleware("http")(observability_middleware)
 
 # Initialize gateway and memory
 gateway = Gateway()
 memory = ContextMemory(DB_PATH)
 
 @app.post("/core", response_model=CoreResponse)
-async def core_endpoint(request: CoreRequest, http_request: Request, _sspl=Depends(require_sspl)) -> CoreResponse:
+async def core_endpoint(request: CoreRequest, http_request: Request, _auth=Depends(require_auth), _sspl=Depends(require_sspl)) -> CoreResponse:
     """Main gateway endpoint for processing agent requests"""
     try:
         # Security validation
@@ -71,7 +76,7 @@ async def core_endpoint(request: CoreRequest, http_request: Request, _sspl=Depen
         raise HTTPException(status_code=500, detail="Processing failed")
 
 @app.get("/get-history")
-async def get_history(user_id: str, request: Request) -> List[Dict[str, Any]]:
+async def get_history(user_id: str, request: Request, _auth=Depends(require_auth)) -> List[Dict[str, Any]]:
     """Get full interaction history for a user"""
     try:
         # Security validation
@@ -98,7 +103,7 @@ async def get_history(user_id: str, request: Request) -> List[Dict[str, Any]]:
         raise HTTPException(status_code=500, detail="History retrieval failed")
 
 @app.get("/get-context") 
-async def get_context(user_id: str, request: Request) -> List[Dict[str, Any]]:
+async def get_context(user_id: str, request: Request, _auth=Depends(require_auth)) -> List[Dict[str, Any]]:
     """Get recent context (last 3 interactions) for a user"""
     try:
         # Security validation
@@ -150,10 +155,9 @@ async def system_health():
         noopur_status = "disabled"
         if os.getenv("INTEGRATOR_USE_NOOPUR", "false").lower() in ("1", "true", "yes"):
             try:
-                # Use NoopurClient for health check
                 from src.utils.noopur_client import NoopurClient
                 noopur_client = NoopurClient()
-                noopur_status = asyncio.run(noopur_client.health_check())
+                noopur_status = await noopur_client.health_check()
             except Exception:
                 noopur_status = "down"
 
@@ -193,7 +197,7 @@ async def system_health():
         }
 
 @app.get("/system/diagnostics")
-async def system_diagnostics():
+async def system_diagnostics(_auth=Depends(require_auth)):
     """System diagnostics - internal details for monitoring"""
     try:
         import time
@@ -222,11 +226,15 @@ async def system_diagnostics():
         memory_adapter = type(gateway.memory).__name__
 
         return {
-            "config": config,
+            "config": {
+                "db_mode": config.get("db_mode"),
+                "noopur_enabled": config.get("noopur_enabled"),
+                "log_level": config.get("log_level"),
+                "sspl_enabled": config.get("sspl_enabled")
+            },
             "database": {
                 "status": db_status,
-                "latency_ms": db_latency,
-                "adapter": memory_adapter
+                "latency_ms": db_latency
             },
             "agents": agent_status,
             "feature_flags": {
@@ -243,7 +251,7 @@ async def system_diagnostics():
         }
 
 @app.post("/feedback")
-async def submit_feedback(request: FeedbackRequest, http_request: Request, _sspl=Depends(require_sspl)):
+async def submit_feedback(request: FeedbackRequest, http_request: Request, _auth=Depends(require_auth), _sspl=Depends(require_sspl)):
     """Submit feedback for generated content"""
     try:
         # Security validation
@@ -267,7 +275,7 @@ async def submit_feedback(request: FeedbackRequest, http_request: Request, _sspl
         raise HTTPException(status_code=500, detail="Feedback processing failed")
 
 @app.get("/creator/history")
-async def get_creator_history(user_id: str, request: Request):
+async def get_creator_history(user_id: str, request: Request, _auth=Depends(require_auth)):
     """Get creator generation history"""
     try:
         # Security validation - no "all" access allowed
@@ -292,8 +300,9 @@ async def get_creator_history(user_id: str, request: Request):
         raise HTTPException(status_code=500, detail="History retrieval failed")
 
 @app.get("/system/logs/latest")
-async def system_logs_latest(limit: int = 50):
-    """Get latest log entries"""
+async def system_logs_latest(limit: int = 50, _auth=Depends(require_auth)):
+    """Get latest log entries (authenticated, max 200 lines)"""
+    limit = max(1, min(limit, 200))  # enforce hard cap""
     log_dir = Path("logs/bridge")
     if not log_dir.exists():
         return {"logs": [], "message": "No logs available"}
@@ -317,7 +326,7 @@ async def system_logs_latest(limit: int = 50):
 # NEW LINEAGE AND REPLAY ENDPOINTS
 
 @app.get("/lineage/{instruction_id}")
-async def get_instruction_lineage(instruction_id: str, request: Request):
+async def get_instruction_lineage(instruction_id: str, request: Request, _auth=Depends(require_auth)):
     """Get complete lineage for an instruction"""
     try:
         lineage = gateway.lineage_manager.get_instruction_lineage(instruction_id)
@@ -326,7 +335,7 @@ async def get_instruction_lineage(instruction_id: str, request: Request):
         raise HTTPException(status_code=500, detail=f"Lineage retrieval failed: {str(e)}")
 
 @app.get("/artifacts/{artifact_id}")
-async def get_artifact(artifact_id: str, request: Request):
+async def get_artifact(artifact_id: str, request: Request, _auth=Depends(require_auth)):
     """Get artifact by ID"""
     try:
         artifact = gateway.bucket_reader.get_artifact_by_id(artifact_id)
@@ -339,7 +348,7 @@ async def get_artifact(artifact_id: str, request: Request):
         raise HTTPException(status_code=500, detail=f"Artifact retrieval failed: {str(e)}")
 
 @app.get("/artifacts/instruction/{instruction_id}")
-async def get_instruction_artifacts(instruction_id: str, request: Request):
+async def get_instruction_artifacts(instruction_id: str, request: Request, _auth=Depends(require_auth)):
     """Get all artifacts for an instruction"""
     try:
         artifacts = gateway.bucket_reader.get_artifacts_by_instruction(instruction_id)
@@ -348,14 +357,14 @@ async def get_instruction_artifacts(instruction_id: str, request: Request):
         raise HTTPException(status_code=500, detail=f"Artifacts retrieval failed: {str(e)}")
 
 @app.post("/replay/{instruction_id}")
-async def replay_instruction(instruction_id: str, request: Request):
+async def replay_instruction(instruction_id: str, request: Request, _auth=Depends(require_auth)):
     """Replay an instruction deterministically"""
     try:
         if gateway.replay_engine is None:
-            # Initialize replay engine if needed
             from src.core.routing_engine import RoutingEngine
+            from src.core.replay_engine import ReplayEngine
             routing_engine = RoutingEngine(gateway.agents, gateway.memory)
-            gateway.replay_engine = gateway.replay_engine or gateway.__class__.ReplayEngine(gateway.lineage_manager, routing_engine, gateway.memory)
+            gateway.replay_engine = ReplayEngine(gateway.lineage_manager, routing_engine, gateway.memory)
         
         replay_result = gateway.replay_engine.replay_instruction(instruction_id)
         return replay_result
@@ -363,7 +372,7 @@ async def replay_instruction(instruction_id: str, request: Request):
         raise HTTPException(status_code=500, detail=f"Replay failed: {str(e)}")
 
 @app.get("/replay/validate/{instruction_id}")
-async def validate_replay_capability(instruction_id: str, request: Request):
+async def validate_replay_capability(instruction_id: str, request: Request, _auth=Depends(require_auth)):
     """Check if an instruction can be replayed"""
     try:
         if gateway.replay_engine is None:
@@ -378,7 +387,7 @@ async def validate_replay_capability(instruction_id: str, request: Request):
         raise HTTPException(status_code=500, detail=f"Validation failed: {str(e)}")
 
 @app.get("/bucket/statistics")
-async def get_bucket_statistics(request: Request):
+async def get_bucket_statistics(request: Request, _auth=Depends(require_auth)):
     """Get Bucket storage statistics"""
     try:
         stats = gateway.bucket_reader.get_bucket_statistics()
@@ -387,7 +396,7 @@ async def get_bucket_statistics(request: Request):
         raise HTTPException(status_code=500, detail=f"Statistics retrieval failed: {str(e)}")
 
 @app.get("/replay/statistics")
-async def get_replay_statistics(request: Request):
+async def get_replay_statistics(request: Request, _auth=Depends(require_auth)):
     """Get replay system statistics"""
     try:
         if gateway.replay_engine is None:

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, root_validator
+from pydantic import BaseModel, Field, model_validator
 from typing import Dict, Any, Literal
 
 
@@ -16,14 +16,11 @@ class CoreResponse(BaseModel):
     message: str = Field(..., description="Human-readable message")
     result: Any = Field(default_factory=dict)
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
+    @classmethod
     def ensure_fields(cls, values):
-        # Provide safe defaults if modules returned only a raw result
-        if 'status' not in values:
-            values['status'] = 'success'
-        if 'message' not in values:
-            values['message'] = ''
-        if 'result' not in values and ('word_count' in values or values):
-            # If module returned a plain dict (like {'word_count': 3}), put it under result
-            values['result'] = values.copy()
+        if isinstance(values, dict):
+            values.setdefault("status", "success")
+            values.setdefault("message", "")
+            values.setdefault("result", {})
         return values
