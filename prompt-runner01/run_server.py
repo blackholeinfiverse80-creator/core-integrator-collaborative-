@@ -16,14 +16,26 @@ class Handler(BaseHTTPRequestHandler):
             self._send(404, {'error': 'not_found'})
 
     def do_POST(self):
-        # Simple echo for testing
         content_length = int(self.headers.get('Content-Length', 0))
         body = self.rfile.read(content_length) if content_length else b''
         try:
             data = json.loads(body.decode('utf-8')) if body else {}
         except Exception:
             data = {'raw': body.decode('utf-8', errors='replace')}
-        self._send(200, {'received': data})
+        
+        prompt = data.get('prompt', 'Default prompt')
+        
+        # Return a valid PromptRunnerInstruction payload matching Creator Core expectations
+        payload = {
+            "prompt": prompt,
+            "module": "creator",
+            "intent": "generate",
+            "topic": "design",
+            "tasks": ["create_blueprint"],
+            "output_format": "json",
+            "product_context": "testing"
+        }
+        self._send(200, payload)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PROMPT_RUNNER_PORT', '8003'))

@@ -217,16 +217,21 @@ class ServiceOrchestrator:
             current_pythonpath = env.get("PYTHONPATH", "")
             new_pythonpath = os.pathsep.join(filter(None, [root_dir, src_dir, current_pythonpath]))
             env["PYTHONPATH"] = new_pythonpath
+            # Create logs directory and open service log file
+            logs_dir = Path(__file__).parent.parent / "logs"
+            logs_dir.mkdir(exist_ok=True)
+            log_file = open(logs_dir / f"{service_name}.log", "w", encoding="utf-8")
             
             # Start process
             process = subprocess.Popen(
                 [sys.executable, runner_script],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                stdout=log_file,
+                stderr=subprocess.STDOUT,
                 text=True,
                 env=env,
                 cwd=str(Path(__file__).parent.parent)
             )
+            log_file.close()
             
             self.processes[service_name] = process
             time.sleep(0.5)  # Give process time to start

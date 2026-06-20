@@ -23,6 +23,10 @@ import requests
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 
 class ArtifactGraph:
