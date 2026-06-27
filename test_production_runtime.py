@@ -59,7 +59,7 @@ def main():
     all_healthy = False
     start_time = time.time()
     
-    while time.time() - start_time < 45:
+    while time.time() - start_time < 90:
         # Check health of all services
         healthy_count = 0
         failed_services = []

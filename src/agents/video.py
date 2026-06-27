@@ -29,8 +29,69 @@ class VideoAgent(BaseAgent):
             }
     
     def _generate_video(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Generate video from text using external video service"""
+        """Generate video from text or dispatch game execution contract using external service"""
         try:
+            # Check if this is a game generation contract execution (TTG/TTV spec)
+            if "game_mode" in data or "entities" in data:
+                import uuid
+                import time
+                
+                # Retrieve trace_id from metadata or fallback
+                metadata = data.get("_instruction_metadata", {})
+                trace_id = metadata.get("instruction_id") or data.get("trace_id")
+                if not trace_id:
+                    trace_id = f"trace_{int(time.time() * 1000)}"
+                
+                execution_id = f"exec_{int(time.time() * 1000)}_{uuid.uuid4().hex[:8]}"
+                
+                # Assemble engineExecutionContract_v3
+                contract = {
+                    "execution_id": execution_id,
+                    "trace_id": trace_id,
+                    "game_mode": data.get("game_mode", "runner"),
+                    "entities": data.get("entities", [
+                        {
+                            "id": "player_1",
+                            "type": "player",
+                            "transform": { "position": [0, 0, 0], "rotation": [0, 0, 0], "scale": [1, 1, 1] }
+                        }
+                    ]),
+                    "physics": data.get("physics", {
+                        "gravity": [0, -9.8, 0]
+                    }),
+                    "scoring": data.get("scoring", {
+                        "rules": { "distance": 1, "collectibles": 10, "time": 0 }
+                    })
+                }
+                
+                # Append optional fields if they are in the request payload
+                for opt in ["scene", "movement", "camera", "spawn_rules", "player_params"]:
+                    if opt in data:
+                        contract[opt] = data[opt]
+                
+                # Call the Node.js execute_contract_v3
+                external_result = self.video_bridge.execute_contract_v3(contract)
+                
+                if external_result.get("success") is not False:
+                    return {
+                        "status": "success",
+                        "message": "Game execution contract dispatched to microservice",
+                        "result": {
+                            "generation_id": execution_id,
+                            "execution_id": execution_id,
+                            "trace_id": trace_id,
+                            "status": "dispatched",
+                            "external_response": external_result.get("result", {})
+                        }
+                    }
+                else:
+                    return {
+                        "status": "error",
+                        "message": external_result.get("message", "Microservice dispatch failed"),
+                        "result": {}
+                    }
+            
+            # Traditional text-to-video pathway
             text = data.get("text")
             if not text:
                 return {

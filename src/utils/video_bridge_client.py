@@ -3,15 +3,17 @@ from typing import Dict, Any, Optional
 import logging
 import time
 import os
+from src.utils.hmac_signer import sign_payload, generate_jwt
 
 
 class VideoBridgeClient:
     """Client for text-to-video service integration"""
     
     def __init__(self, base_url: Optional[str] = None):
+        # Default to TTV_TTG_SERVICE_URL, fall back to VIDEO_SERVICE_URL, and then default to port 3000
         self.base_url = base_url or os.getenv(
-            "VIDEO_SERVICE_URL",
-            "http://localhost:5002"
+            "TTV_TTG_SERVICE_URL",
+            os.getenv("VIDEO_SERVICE_URL", "http://localhost:3000")
         )
         self.logger = logging.getLogger(__name__)
         self.timeout = int(os.getenv("VIDEO_SERVICE_TIMEOUT", "300"))
@@ -100,7 +102,7 @@ class VideoBridgeClient:
             }
     
     def get_video_status(self, generation_id: str) -> Dict[str, Any]:
-        """Get video generation status"""
+        """Get video generation status (REST polling on Node.js /core/execution/:id or legacy /status/:id)"""
         start_time = time.time()
         try:
             if not generation_id:
@@ -113,10 +115,22 @@ class VideoBridgeClient:
                     "error_message": "generation_id is required"
                 }
             
+            headers = {"Content-Type": "application/json"}
+            api_key = os.getenv("AUTH_API_KEY")
+            if api_key:
+                headers["X-API-Key"] = api_key
+            
+            # If generation_id is standard execution_id (e.g. starting with exec_ or contains it), call the Node.js endpoint
+            if generation_id.startswith("exec_") or generation_id.startswith("vid_exec_"):
+                clean_id = generation_id.replace("vid_exec_", "exec_")
+                endpoint = f"/core/execution/{clean_id}"
+            else:
+                endpoint = f"/status/{generation_id}"
+                
             response = requests.get(
-                f"{self.base_url}/status/{generation_id}",
+                f"{self.base_url}{endpoint}",
                 timeout=10,
-                headers={"Content-Type": "application/json"}
+                headers=headers
             )
             
             response.raise_for_status()
@@ -229,4 +243,87 @@ class VideoBridgeClient:
     def is_healthy(self) -> bool:
         """Check if video service is healthy"""
         health = self.health_check()
-        return health.get("status") == "healthy"
+        return health.get("status") == "healthy" or health.get("status") == "ok"
+
+    def execute_contract_v3(self, contract: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Execute an engineExecutionContract_v3 contract with the Node.js TTG/TTV microservice.
+        Acts as the Hardened Phase 4 Interface (POST /execute).
+        """
+        start_time = time.time()
+        try:
+            # 1. Extract trace_id and execution_id
+            trace_id = contract.get("trace_id")
+            execution_id = contract.get("execution_id")
+            
+            if not trace_id or not execution_id:
+                raise ValueError("Missing required fields: trace_id, execution_id")
+                
+            # 2. Strip prohibited fields (Rudra Parmeshwar Pipeline Authority rules)
+            prohibited_fields = {
+                "domain", "decisionEnvelope", "_source", "context", "tasks",
+                "output_format", "module", "intent", "world_params", "data"
+            }
+            cleaned_contract = {k: v for k, v in contract.items() if k not in prohibited_fields}
+            
+            # 3. Generate HMAC-SHA256 signature envelope
+            secret = os.getenv("ENGINE_SHARED_SECRET") or os.getenv("AUTH_SECRET_KEY") or "prod_shakti_tantra_secret_key_2026"
+            signed_envelope = sign_payload(cleaned_contract, secret)
+            
+            # 4. Generate Bearer JWT token
+            jwt_secret = os.getenv("AUTH_SECRET_KEY") or secret
+            jwt_payload = {
+                "iss": "bhiv_core",
+                "exp": int(time.time()) + 3600,
+                "user_id": "bhiv_user"
+            }
+            jwt_token = generate_jwt(jwt_payload, jwt_secret)
+            
+            # 5. Construct headers
+            headers = {
+                "Content-Type": "application/json",
+                "X-Trace-Id": trace_id,
+                "X-Execution-Id": execution_id,
+                "Authorization": f"Bearer {jwt_token}"
+            }
+            
+            # Also attach API Key if configured
+            api_key = os.getenv("AUTH_API_KEY")
+            if api_key:
+                headers["X-API-Key"] = api_key
+                
+            # 6. Make request to POST /execute
+            self.logger.info(f"Dispatching engineExecutionContract_v3 to TTG/TTV microservice at {self.base_url}/execute",
+                             extra={"dependency": "ttg_ttv_service", "endpoint": "/execute", "trace_id": trace_id, "execution_id": execution_id})
+                             
+            response = requests.post(
+                f"{self.base_url}/execute",
+                json=signed_envelope,
+                timeout=self.timeout,
+                headers=headers
+            )
+            
+            response.raise_for_status()
+            result = response.json()
+            latency = round((time.time() - start_time) * 1000, 2)
+            
+            self.logger.info(f"TTG/TTV dispatch successful",
+                             extra={"dependency": "ttg_ttv_service", "endpoint": "/execute", "latency_ms": latency})
+                             
+            return {
+                "success": True,
+                "status": "success",
+                "message": "Contract executed successfully",
+                "result": result
+            }
+            
+        except Exception as e:
+            latency = round((time.time() - start_time) * 1000, 2)
+            self.logger.error(f"TTG/TTV contract dispatch failed: {str(e)}",
+                             extra={"dependency": "ttg_ttv_service", "endpoint": "/execute", "latency_ms": latency})
+            return {
+                "success": False,
+                "status": "error",
+                "message": f"Microservice dispatch failed: {str(e)}",
+                "result": {}
+            }
