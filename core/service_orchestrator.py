@@ -54,7 +54,10 @@ class ServiceOrchestrator:
                     'prompt_runner': {'port': 8003, 'depends_on': []},
                     'creator_core': {'port': 8000, 'depends_on': []},
                     'bhiv_core': {'port': 8001, 'depends_on': []},
-                    'integration_bridge': {'port': 8004, 'depends_on': ['prompt_runner', 'creator_core', 'bhiv_core', 'bucket']},
+                    'cet': {'port': 8006, 'depends_on': []},
+                    'sarathi': {'port': 8007, 'depends_on': []},
+                    'gate': {'port': 8008, 'depends_on': []},
+                    'integration_bridge': {'port': 8004, 'depends_on': ['prompt_runner', 'creator_core', 'cet', 'sarathi', 'gate', 'bhiv_core', 'bucket']},
                     'bucket': {'port': 8005, 'depends_on': []},
                 },
                 'global': {'health_check_timeout': 5}
@@ -150,20 +153,20 @@ class ServiceOrchestrator:
         
         try:
             for service_name in startup_order:
-                print(f"▶️  Starting {service_name}...", end=" ", flush=True)
+                print(f"-> Starting {service_name}...", end=" ", flush=True)
                 
                 if self._start_service(service_name):
                     self.running_services.add(service_name)
-                    print(f"✅ Started (PID: {self.processes[service_name].pid})")
+                    print(f"[OK] Started (PID: {self.processes[service_name].pid})")
                     
                     # Wait for health check if enabled
                     if wait_for_health:
                         if self._wait_for_health(service_name, health_check_timeout):
-                            print(f"   ✅ Health check passed")
+                            print(f"   [OK] Health check passed")
                         else:
-                            print(f"   ⚠️  Health check timeout (continuing)")
+                            print(f"   [WARN] Health check timeout (continuing)")
                 else:
-                    print(f"❌ Failed to start")
+                    print(f"[ERROR] Failed to start")
                     self._shutdown_all()
                     return False
                 
@@ -171,17 +174,17 @@ class ServiceOrchestrator:
                 time.sleep(0.5)
         
         except KeyboardInterrupt:
-            print("\n\n⚠️  Interrupted by user")
+            print("\n\n[WARN] Interrupted by user")
             self._shutdown_all()
             return False
         except Exception as e:
-            print(f"\n\n❌ Error during startup: {str(e)}")
+            print(f"\n\n[ERROR] Error during startup: {str(e)}")
             logger.error(f"Orchestrator error: {str(e)}", exc_info=True)
             self._shutdown_all()
             return False
         
         print("\n" + "="*70)
-        print("✅ ALL SERVICES STARTED SUCCESSFULLY")
+        print("[OK] ALL SERVICES STARTED SUCCESSFULLY")
         print("="*70)
         self._print_service_summary()
         
@@ -256,6 +259,9 @@ class ServiceOrchestrator:
             'bhiv_core': 'main.py',
             'integration_bridge': 'integration_bridge.py',
             'bucket': 'bhiv_bucket.py',
+            'cet': 'cet_service.py',
+            'sarathi': 'sarathi_service.py',
+            'gate': 'gate_service.py',
         }
         return runners.get(service_name)
     
@@ -324,7 +330,7 @@ class ServiceOrchestrator:
             else:
                 url = 'N/A'
             
-            icon = "✅" if running else "❌"
+            icon = "[OK]" if running else "[X]"
             print(f"{icon} {service_name:20s} | PID: {str(pid):6s} | Port: {str(port):5s} | URL: {url}")
         
         print("-" * 70)
@@ -353,7 +359,7 @@ class ServiceOrchestrator:
                 self._print_service_summary()
                 
                 if dead_services:
-                    print(f"\n⚠️  Dead services detected: {', '.join(dead_services)}")
+                    print(f"\n[WARN] Dead services detected: {', '.join(dead_services)}")
                 
                 print(f"\nLast check: {datetime.now().strftime('%H:%M:%S')}")
                 print(f"Waiting {check_interval}s for next check...")
@@ -391,20 +397,20 @@ class ServiceOrchestrator:
                     process.terminate()
                     # Wait up to 3 seconds for graceful shutdown
                     process.wait(timeout=3)
-                    print("✅ Stopped")
+                    print("[OK] Stopped")
                 except subprocess.TimeoutExpired:
                     print("(timeout, killing)...", end=" ", flush=True)
                     process.kill()
                     process.wait()
-                    print("✅ Killed")
+                    print("[OK] Killed")
                 except Exception as e:
-                    print(f"❌ Error: {str(e)}")
+                    print(f"[ERROR] Error: {str(e)}")
         
         self.processes.clear()
         self.running_services.clear()
         
         print("\n" + "="*70)
-        print("✅ ALL SERVICES STOPPED")
+        print("[OK] ALL SERVICES STOPPED")
         print("="*70 + "\n")
 
 
@@ -438,5 +444,5 @@ if __name__ == "__main__":
         # Monitor services
         orchestrator.monitor_services(check_interval=5)
     else:
-        print("\n❌ Failed to start services")
+        print("\n[ERROR] Failed to start services")
         sys.exit(1)

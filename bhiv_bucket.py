@@ -164,7 +164,8 @@ class BHIVBucket:
 
 
 # Bucket API
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
+from fastapi.security import APIKeyHeader
 from pydantic import BaseModel
 from typing import Optional
 
@@ -174,6 +175,17 @@ bucket_app = FastAPI(
     version="1.0.0"
 )
 
+API_KEY_NAME = "X-API-Key"
+api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
+
+def verify_api_key(api_key: str = Depends(api_key_header)):
+    expected_api_key = os.getenv("AUTH_API_KEY", "")
+    auth_enabled = os.getenv("AUTH_ENABLED", "true").lower() in ("1", "true", "yes")
+    if auth_enabled and expected_api_key:
+        if not api_key or api_key != expected_api_key:
+            raise HTTPException(status_code=401, detail="Invalid API Key")
+    return api_key
+
 bucket = BHIVBucket()
 
 class StoreArtifactRequest(BaseModel):
@@ -182,7 +194,7 @@ class StoreArtifactRequest(BaseModel):
     data: Dict[str, Any]
     trace_id: str
 
-@bucket_app.post("/bucket/store")
+@bucket_app.post("/bucket/store", dependencies=[Depends(verify_api_key)])
 async def store_artifact(request: StoreArtifactRequest):
     """Store artifact in bucket"""
     result = bucket.store_artifact(
@@ -193,7 +205,7 @@ async def store_artifact(request: StoreArtifactRequest):
     )
     return result
 
-@bucket_app.get("/bucket/artifact/{artifact_id}")
+@bucket_app.get("/bucket/artifact/{artifact_id}", dependencies=[Depends(verify_api_key)])
 async def get_artifact(artifact_id: str):
     """Retrieve artifact by ID"""
     artifact = bucket.retrieve_artifact(artifact_id)
@@ -201,7 +213,7 @@ async def get_artifact(artifact_id: str):
         raise HTTPException(status_code=404, detail="Artifact not found")
     return artifact
 
-@bucket_app.get("/bucket/trace/{trace_id}")
+@bucket_app.get("/bucket/trace/{trace_id}", dependencies=[Depends(verify_api_key)])
 async def get_trace_artifacts(trace_id: str):
     """Retrieve all artifacts for a trace"""
     artifacts = bucket.retrieve_by_trace(trace_id)
@@ -209,7 +221,7 @@ async def get_trace_artifacts(trace_id: str):
         raise HTTPException(status_code=404, detail="Trace not found")
     return {"trace_id": trace_id, "artifacts": artifacts}
 
-@bucket_app.get("/bucket/traces")
+@bucket_app.get("/bucket/traces", dependencies=[Depends(verify_api_key)])
 async def list_traces(limit: int = 100):
     """List recent traces"""
     return {"traces": bucket.list_traces(limit)}

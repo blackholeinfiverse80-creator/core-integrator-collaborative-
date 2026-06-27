@@ -30,7 +30,7 @@ AUTH_SECRET_KEY = os.getenv("AUTH_SECRET_KEY", "")
 AUTH_API_KEY = os.getenv("AUTH_API_KEY", "")
 
 # Endpoints that do NOT require authentication
-PUBLIC_PATHS = {"/", "/system/health", "/docs", "/openapi.json", "/redoc"}
+PUBLIC_PATHS = {"/", "/system/health", "/docs", "/openapi.json", "/redoc", "/pipeline/health", "/health", "/bucket/stats"}
 
 
 def _b64url_decode(s: str) -> bytes:
@@ -81,6 +81,7 @@ async def auth_middleware(request: Request, call_next):
     api_key_header = request.headers.get("X-API-Key", "")
     if AUTH_API_KEY and api_key_header:
         if hmac.compare_digest(api_key_header, AUTH_API_KEY):
+            request.state.auth_payload = {"user": "api_key_client", "auth_method": "api_key"}
             return await call_next(request)
         return JSONResponse(status_code=401, content={"error": "Invalid API key"})
 

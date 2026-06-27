@@ -59,40 +59,98 @@ class RoutingEngine:
         )
         
         try:
-            # TANTRA FLOW: Core → CET → Sarathi → Gate → Execution
+            # TANTRA FLOW: Core → CET → Sarathi → Gate → Execution (via microservice APIs)
+            import os
+            import requests
+            from src.utils.observability import get_trace_id, get_workflow_id
             
+            # API Key authorization
+            api_key = os.getenv("AUTH_API_KEY", "")
+            headers = {"X-API-Key": api_key} if api_key else {}
+            
+            ctx_trace_id = get_trace_id() or instruction.get('trace_id') or instruction.get('instruction_id')
+            ctx_workflow_id = get_workflow_id() or instruction.get('workflow_id') or "wf_unknown"
+            
+            # Propagate trace and workflow identifiers
+            instruction['trace_id'] = ctx_trace_id
+            instruction['workflow_id'] = ctx_workflow_id
+            instruction['instruction_id'] = ctx_trace_id
+
             # PHASE 1: CET - Compile execution contract
-            contract = self.cet_compiler.compile_contract(instruction, routing_decision)
-            contract_dict = self.cet_compiler.contract_to_dict(contract)
+            cet_url = "http://127.0.0.1:8006"
+            try:
+                from config import ConfigManager
+                cet_url = ConfigManager.get_service_url('cet')
+            except ImportError:
+                pass
+            
+            cet_req = {
+                "instruction": instruction,
+                "routing_decision": {
+                    "blueprint_type": routing_decision.blueprint_type,
+                    "target_product": routing_decision.target_product,
+                    "execution_intent": routing_decision.execution_intent,
+                    "module_path": routing_decision.module_path,
+                    "adapter_name": routing_decision.adapter_name,
+                    "execution_data": routing_decision.execution_data
+                }
+            }
+            cet_res = requests.post(f"{cet_url}/contract/compile", json=cet_req, headers=headers, timeout=10)
+            cet_res.raise_for_status()
+            contract_dict = cet_res.json()
             
             self.logger.info(
-                "Contract compiled",
+                "Contract compiled via CET Service",
                 extra={
                     "event_type": "cet.contract_compiled",
-                    "contract_id": contract.contract_id,
+                    "contract_id": contract_dict.get("contract_id"),
                     "instruction_id": instruction_id,
-                    "contract_hash": contract.contract_hash,
+                    "trace_id": ctx_trace_id,
+                    "workflow_id": ctx_workflow_id,
+                    "contract_hash": contract_dict.get("contract_hash"),
                     "telemetry_target": "insightflow"
                 }
             )
             
             # PHASE 2: Sarathi - Validate contract
-            authority_decision = self.authority_engine.validate_contract(contract_dict)
-            authority_dict = self.authority_engine._decision_to_dict(authority_decision)
+            sarathi_url = "http://127.0.0.1:8007"
+            try:
+                from config import ConfigManager
+                sarathi_url = ConfigManager.get_service_url('sarathi')
+            except ImportError:
+                pass
+                
+            sarathi_res = requests.post(f"{sarathi_url}/authority/validate", json={"contract": contract_dict}, headers=headers, timeout=10)
+            sarathi_res.raise_for_status()
+            authority_dict = sarathi_res.json()
             
             self.logger.info(
-                "Authority decision",
+                "Authority decision via Sarathi Service",
                 extra={
                     "event_type": "sarathi.authority_decision",
-                    "contract_id": contract.contract_id,
-                    "allowed": authority_decision.allowed,
-                    "reason": authority_decision.reason,
+                    "contract_id": contract_dict.get("contract_id"),
+                    "trace_id": ctx_trace_id,
+                    "workflow_id": ctx_workflow_id,
+                    "allowed": authority_dict.get("allowed"),
+                    "reason": authority_dict.get("reason"),
                     "telemetry_target": "insightflow"
                 }
             )
             
             # PHASE 3: Gate - Execute if authorized
-            execution_result = self.execution_gate.execute_if_authorized(contract_dict, authority_dict)
+            gate_url = "http://127.0.0.1:8008"
+            try:
+                from config import ConfigManager
+                gate_url = ConfigManager.get_service_url('gate')
+            except ImportError:
+                pass
+                
+            gate_res = requests.post(f"{gate_url}/gate/evaluate", json={
+                "contract": contract_dict,
+                "authority_decision": authority_dict
+            }, headers=headers, timeout=30)
+            gate_res.raise_for_status()
+            execution_result = gate_res.json()
             
             # Calculate execution duration
             execution_duration_ms = (time.time() - start_time) * 1000
@@ -120,12 +178,13 @@ class RoutingEngine:
             # Add TANTRA metadata to envelope
             execution_result['execution_envelope'].update(hash_fingerprint)
             execution_result['tantra_flow'] = {
-                "contract_id": contract.contract_id,
-                "contract_hash": contract.contract_hash,
-                "authority_allowed": authority_decision.allowed,
-                "authority_reason": authority_decision.reason,
+                "contract_id": contract_dict.get("contract_id"),
+                "contract_hash": contract_dict.get("contract_hash"),
+                "authority_allowed": authority_dict.get("allowed"),
+                "authority_reason": authority_dict.get("reason"),
                 "gate_status": execution_result.get('gate_status'),
-                "flow_complete": True
+                "flow_complete": True,
+                "workflow_id": ctx_workflow_id
             }
             
             # Log execution completed
@@ -135,6 +194,8 @@ class RoutingEngine:
                     "event_type": "execution.completed",
                     "instruction_id": instruction_id,
                     "execution_id": envelope.execution_id,
+                    "trace_id": ctx_trace_id,
+                    "workflow_id": ctx_workflow_id,
                     "status": execution_result.get('status'),
                     "execution_duration_ms": execution_duration_ms,
                     "telemetry_target": "insightflow"

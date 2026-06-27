@@ -27,6 +27,9 @@ except ImportError:
                     'bhiv_core': {'port': 8001, 'timeout': 30},
                     'integration_bridge': {'port': 8004, 'timeout': 30},
                     'bucket': {'port': 8005, 'timeout': 30},
+                    'cet': {'port': 8006, 'timeout': 30},
+                    'sarathi': {'port': 8007, 'timeout': 30},
+                    'gate': {'port': 8008, 'timeout': 30},
                 },
                 'global': {'request_timeout': 30}
             }
@@ -44,6 +47,9 @@ except ImportError:
                 'bhiv_core': 'http://127.0.0.1:8001',
                 'integration_bridge': 'http://127.0.0.1:8004',
                 'bucket': 'http://127.0.0.1:8005',
+                'cet': 'http://127.0.0.1:8006',
+                'sarathi': 'http://127.0.0.1:8007',
+                'gate': 'http://127.0.0.1:8008',
             }
             return urls.get(name)
         
@@ -155,7 +161,7 @@ class CircuitBreaker:
             if self.success_count >= self.success_threshold:
                 self.state = CircuitState.CLOSED
                 self.failure_count = 0
-                logger.info(f"[{self.name}] Circuit CLOSED - service recovered ✅")
+                logger.info(f"[{self.name}] Circuit CLOSED - service recovered [OK]")
         
         elif self.state == CircuitState.CLOSED:
             self.failure_count = 0
@@ -169,7 +175,7 @@ class CircuitBreaker:
             self.state = CircuitState.OPEN
             logger.error(
                 f"[{self.name}] Circuit re-opened - "
-                f"service still unavailable ❌"
+                f"service still unavailable"
             )
         
         elif self.state == CircuitState.CLOSED:
@@ -177,7 +183,7 @@ class CircuitBreaker:
                 self.state = CircuitState.OPEN
                 logger.error(
                     f"[{self.name}] Circuit OPEN - "
-                    f"threshold ({self.failure_threshold}) exceeded ❌"
+                    f"threshold ({self.failure_threshold}) exceeded"
                 )
 
 
@@ -477,8 +483,8 @@ class ServiceMesh:
             circuit = status['circuit_breaker']['state']
             response_time = status['health'].get('response_time_ms', 'N/A')
             
-            health_icon = "✅" if health == "healthy" else "⚠️" if health == "unknown" else "❌"
-            circuit_icon = "🟢" if circuit == "closed" else "🟡" if circuit == "half_open" else "🔴"
+            health_icon = "[OK]" if health == "healthy" else "[?]" if health == "unknown" else "[X]"
+            circuit_icon = "[CLOSED]" if circuit == "closed" else "[HALF-OPEN]" if circuit == "half_open" else "[OPEN]"
             
             print(
                 f"{health_icon} {service_name:20s} | "

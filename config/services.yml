@@ -63,6 +63,9 @@ services:
     depends_on:
       - prompt_runner
       - creator_core
+      - cet
+      - sarathi
+      - gate
       - bhiv_core
       - bucket
     environment:
@@ -82,6 +85,42 @@ services:
       LOG_LEVEL: "INFO"
       STORAGE_PATH: "data/artifacts"
       ARTIFACT_RETENTION_DAYS: 30
+
+  cet:
+    name: "CET Service"
+    port: 8006
+    description: "Compiles blueprints into contracts"
+    host: "127.0.0.1"
+    timeout: 30
+    retries: 3
+    health_check_endpoint: "/health"
+    depends_on: []
+    environment:
+      LOG_LEVEL: "INFO"
+
+  sarathi:
+    name: "Sarathi Service"
+    port: 8007
+    description: "Validates contract authority"
+    host: "127.0.0.1"
+    timeout: 30
+    retries: 3
+    health_check_endpoint: "/health"
+    depends_on: []
+    environment:
+      LOG_LEVEL: "INFO"
+
+  gate:
+    name: "Gate Service"
+    port: 8008
+    description: "Enforces gate decisions and routes to execution"
+    host: "127.0.0.1"
+    timeout: 30
+    retries: 3
+    health_check_endpoint: "/health"
+    depends_on: []
+    environment:
+      LOG_LEVEL: "INFO"
 
 # API Gateway Configuration
 api_gateway:
@@ -150,3 +189,6 @@ urls:
   integration_bridge: "http://127.0.0.1:8004"
   bucket: "http://127.0.0.1:8005"
   api_gateway: "http://127.0.0.1:8080"
+  cet: "http://127.0.0.1:8006"
+  sarathi: "http://127.0.0.1:8007"
+  gate: "http://127.0.0.1:8008"
