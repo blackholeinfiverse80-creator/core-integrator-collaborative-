@@ -59,6 +59,7 @@ gate = ExecutionGate(agents)
 class EvaluateRequest(BaseModel):
     contract: dict
     authority_decision: dict
+    execute: bool = False
 
 @app.get("/health")
 def health():
@@ -67,7 +68,7 @@ def health():
 @app.post("/gate/evaluate", dependencies=[Depends(verify_api_key)])
 def evaluate_gate(req: EvaluateRequest):
     try:
-        execution_result = gate.execute_if_authorized(req.contract, req.authority_decision)
+        execution_result = gate.execute_if_authorized(req.contract, req.authority_decision, execute=req.execute)
         return execution_result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

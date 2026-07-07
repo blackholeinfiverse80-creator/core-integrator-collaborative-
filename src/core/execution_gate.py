@@ -23,7 +23,7 @@ class ExecutionGate:
         self.logger = setup_logger(__name__)
         self.gate_log = []
     
-    def execute_if_authorized(self, contract: Dict[str, Any], authority_decision: Dict[str, Any]) -> Dict[str, Any]:
+    def execute_if_authorized(self, contract: Dict[str, Any], authority_decision: Dict[str, Any], execute: bool = True) -> Dict[str, Any]:
         """
         Execute ONLY if authority allows
         
@@ -43,8 +43,19 @@ class ExecutionGate:
             self._log_gate_decision(contract_id, trace_id, "REJECTED", authority_decision.get('reason'))
             return rejection
         
-        # Authority allowed - proceed with execution
+        # Authority allowed - proceed with execution or return allow-only decision
         self._log_gate_decision(contract_id, trace_id, "ALLOWED", authority_decision.get('reason'))
+        if not execute:
+            return {
+                "status": "allowed",
+                "message": "Execution approved by gate",
+                "result": {},
+                "contract_id": contract.get("contract_id"),
+                "trace_id": trace_id,
+                "gate_status": "ALLOWED",
+                "authority_decision": authority_decision,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
         
         try:
             execution_result = self._execute_contract(contract)

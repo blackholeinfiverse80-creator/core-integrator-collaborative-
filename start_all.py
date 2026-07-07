@@ -9,6 +9,8 @@ from dotenv import load_dotenv
 
 # Load env variables before starting anything
 load_dotenv()
+if not Path(".env").exists() and Path(".env.template").exists():
+    load_dotenv(".env.template")
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent))
@@ -49,12 +51,12 @@ def main():
                 try:
                     from config import ConfigManager
                     url = ConfigManager.get_service_url(service_name)
-                    print(f"  {service_name:20s} → {url}")
+                    print(f"  {service_name:20s} -> {url}")
                 except:
-                    print(f"  {service_name:20s} → http://127.0.0.1:<port>")
+                    print(f"  {service_name:20s} -> http://127.0.0.1:<port>")
             
             print("-" * 70)
-            print("\n🔍 Monitoring services... (Press Ctrl+C to stop)")
+            print("\nMonitoring services... (Press Ctrl+C to stop)")
             
             # Monitor services continuously
             orchestrator.monitor_services(check_interval=5)

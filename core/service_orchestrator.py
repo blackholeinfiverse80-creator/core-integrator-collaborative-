@@ -9,6 +9,7 @@ import logging
 import signal
 import sys
 import os
+import socket
 from typing import Dict, List, Set, Optional, Tuple
 from pathlib import Path
 from datetime import datetime
@@ -154,6 +155,9 @@ class ServiceOrchestrator:
         try:
             for service_name in startup_order:
                 print(f"-> Starting {service_name}...", end=" ", flush=True)
+                if self._is_service_healthy(service_name):
+                    print("[OK] Already running (healthy)")
+                    continue
                 
                 if self._start_service(service_name):
                     self.running_services.add(service_name)
@@ -208,9 +212,13 @@ class ServiceOrchestrator:
             # Get service port
             service_config = self.services.get(service_name, {})
             port = service_config.get('port')
+            if port and self._is_port_in_use(int(port)):
+                logger.error(f"Port {port} already in use for {service_name}.")
+                return False
             
             # Set environment variables
             env = os.environ.copy()
+            self._apply_default_auth_env(env)
             if port:
                 env[f"{service_name.upper()}_PORT"] = str(port)
             
@@ -250,6 +258,31 @@ class ServiceOrchestrator:
         except Exception as e:
             logger.error(f"Failed to start {service_name}: {str(e)}")
             return False
+
+    def _is_service_healthy(self, service_name: str) -> bool:
+        try:
+            if self.mesh is None:
+                self.mesh = get_service_mesh()
+            return self.mesh.health_check(service_name)
+        except Exception:
+            return False
+
+    def _is_port_in_use(self, port: int) -> bool:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(0.5)
+        try:
+            return sock.connect_ex(("127.0.0.1", port)) == 0
+        finally:
+            sock.close()
+
+    def _apply_default_auth_env(self, env: Dict[str, str]) -> None:
+        """
+        Ensure all services share consistent auth defaults in local startup.
+        This avoids startup crashes when .env is absent.
+        """
+        env.setdefault("AUTH_ENABLED", "true")
+        env.setdefault("AUTH_API_KEY", "prod_shakti_tantra_secret_key_2026")
+        env.setdefault("AUTH_SECRET_KEY", "prod_shakti_tantra_secret_key_2026")
     
     def _get_service_runner(self, service_name: str) -> Optional[str]:
         """Get the runner script path for a service"""
@@ -330,7 +363,12 @@ class ServiceOrchestrator:
             else:
                 url = 'N/A'
             
-            icon = "[OK]" if running else "[X]"
+            if running:
+                icon = "[OK]"
+            elif self._is_service_healthy(service_name):
+                icon = "[OK]"
+            else:
+                icon = "[X]"
             print(f"{icon} {service_name:20s} | PID: {str(pid):6s} | Port: {str(port):5s} | URL: {url}")
         
         print("-" * 70)

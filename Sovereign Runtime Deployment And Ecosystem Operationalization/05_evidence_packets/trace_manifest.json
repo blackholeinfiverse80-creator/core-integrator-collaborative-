@@ -1,0 +1,11 @@
+{
+  "generated_at": "2026-07-07T15:00:00+05:30",
+  "trace_ids": [
+    {
+      "trace_id": "inst_tantra_606bdd086cb4",
+      "source": "full_tantra_flow_test.py",
+      "classification": "simulation_based_before_baseline"
+    }
+  ],
+  "notes": "Live trace_id collection is blocked by service lifecycle/auth instability; see 04_validation/local_deployment_results.md."
+}
