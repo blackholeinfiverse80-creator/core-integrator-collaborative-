@@ -17,6 +17,8 @@ from ..db.memory_adapter import SQLiteAdapter, RemoteNoopurAdapter, MONGODB_AVAI
 from ..utils.logger import setup_logger
 from ..utils.bridge_client import BridgeClient
 from ..utils.video_bridge_client import VideoBridgeClient
+from ..utils.insightflow import make_lineage_event
+from ..utils.telemetry_writer import emit_insightflow_event
 from config.config import DB_PATH, INTEGRATOR_USE_NOOPUR, USE_MONGODB, MONGODB_CONNECTION_STRING, MONGODB_DATABASE_NAME
 from pydantic import ValidationError
 import time
@@ -219,7 +221,17 @@ class Gateway:
                 routing_decision=routing_decision,
                 start_time=start_time
             )
-            
+            trace_id = instruction.get("trace_id") or instruction.get("instruction_id", "unknown")
+            emit_insightflow_event(
+                make_lineage_event(
+                    "execution.completed",
+                    trace_id,
+                    trace_id,
+                    component="bhiv_core",
+                    status=execution_result.get("status", "unknown"),
+                    details={"target_product": instruction.get("target_product")},
+                )
+            )
             return execution_result
             
         except Exception as e:
@@ -447,6 +459,18 @@ class Gateway:
                     "execution_trace": execution_trace_log,
                     "telemetry_target": "insightflow"
                 }
+            )
+            execution_id = execution_trace_log.get("execution_id", "unknown")
+            emit_insightflow_event(
+                make_lineage_event(
+                    "execution.completed",
+                    execution_id,
+                    execution_id,
+                    artifact_hash=execution_trace_log.get("output_hash"),
+                    component="bhiv_core",
+                    status=str(normalized.get("status", "unknown")),
+                    details={"module_id": module, "intent": intent},
+                )
             )
             
         except Exception as e:

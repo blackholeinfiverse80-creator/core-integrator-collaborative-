@@ -14,6 +14,8 @@ from fastapi.security import APIKeyHeader
 from pydantic import BaseModel
 from src.core.cet_contract_compiler import CETContractCompiler
 from src.core.creator_core_parser import RoutingDecision
+from src.utils.insightflow import make_lineage_event
+from src.utils.telemetry_writer import emit_insightflow_event
 
 app = FastAPI(
     title="CET Contract Compiler Service",
@@ -55,7 +57,19 @@ def compile_contract(req: CompileRequest):
             execution_data=rd.get("execution_data", {})
         )
         contract = compiler.compile_contract(req.instruction, decision)
-        return compiler.contract_to_dict(contract)
+        payload = compiler.contract_to_dict(contract)
+        trace_id = payload.get("trace_id") or req.instruction.get("trace_id", "unknown")
+        emit_insightflow_event(
+            make_lineage_event(
+                "contract.compiled",
+                trace_id,
+                trace_id,
+                artifact_hash=payload.get("contract_hash"),
+                component="cet",
+                details={"contract_id": payload.get("contract_id")},
+            )
+        )
+        return payload
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

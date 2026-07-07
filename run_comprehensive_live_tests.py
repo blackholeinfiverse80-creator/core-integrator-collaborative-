@@ -48,13 +48,17 @@ def health_check(name: str, url: str) -> dict:
     start = time.time()
     try:
         resp = requests.get(url, headers=HEADERS, timeout=10)
+        body = resp.json() if "application/json" in resp.headers.get("content-type", "") else resp.text[:200]
+        healthy = resp.status_code == 200
+        if name == "creator_core" and isinstance(body, dict):
+            healthy = healthy and "creator_core_endpoint" in body
         return {
             "service": name,
             "url": url,
             "status_code": resp.status_code,
-            "healthy": resp.status_code == 200,
+            "healthy": healthy,
             "latency_ms": round((time.time() - start) * 1000, 2),
-            "body": resp.json() if "application/json" in resp.headers.get("content-type", "") else resp.text[:200],
+            "body": body,
         }
     except Exception as exc:
         return {
@@ -120,8 +124,15 @@ def run_pipeline(product: str, payload: dict, retries: int = 3) -> dict:
         if bucket.status_code == 200:
             artifacts = bucket.json().get("artifacts", [])
             result["bucket_artifact_count"] = len(artifacts)
-            result["bucket_artifact_types"] = [a.get("artifact_type") for a in artifacts]
-        result["passed"] = result["chain_complete"] and result["replay_passed"] and bucket.status_code == 200
+            result["bucket_artifact_types"] = sorted({a.get("artifact_type") for a in artifacts})
+            expected_types = {"instruction", "blueprint", "contract", "authority", "gate", "execution", "result"}
+            result["bucket_has_all_7_types"] = expected_types.issubset(set(result["bucket_artifact_types"]))
+        result["passed"] = (
+            result.get("chain_complete")
+            and result.get("replay_passed")
+            and bucket.status_code == 200
+            and result.get("bucket_has_all_7_types", False)
+        )
     except Exception as exc:
         result["passed"] = False
         result["error"] = str(exc)

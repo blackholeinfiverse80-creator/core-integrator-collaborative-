@@ -24,6 +24,7 @@ from src.adapters.gurukul_output_adapter import GurukulOutputAdapter
 from src.adapters.simulation_runtime_input_normalizer import SimulationRuntimeInputNormalizer
 from src.adapters.simulation_runtime_output_adapter import SimulationRuntimeOutputAdapter
 from src.utils.insightflow import make_event, make_lineage_event
+from src.utils.determinism import compute_pipeline_deterministic_hash
 
 # Load environment variables
 load_dotenv()
@@ -339,17 +340,9 @@ class BHIVIntegrationBridge:
             "deterministic_hash": self._compute_hash(instruction, blueprint, contract, execution)
         }
     
-    def _compute_hash(self, *args) -> str:
-        """Compute deterministic hash for replay validation"""
-        normalized = []
-        for item in args:
-            if isinstance(item, dict):
-                normalized.append(item)
-            else:
-                normalized.append({"value": item})
-        combined = json.dumps(normalized, sort_keys=True)
-        import hashlib
-        return hashlib.sha256(combined.encode()).hexdigest()[:16]
+    def _compute_hash(self, instruction, blueprint, contract, execution) -> str:
+        """Compute deterministic hash for replay validation (volatile fields stripped)."""
+        return compute_pipeline_deterministic_hash(instruction, blueprint, contract, execution)
     
     def replay_from_trace(self, trace_id: str, headers: Dict[str, str]) -> Dict[str, Any]:
         """Replay pipeline from stored trace"""
@@ -390,6 +383,12 @@ class BHIVIntegrationBridge:
             "bhiv_core": self._check_component(f"{self.bhiv_core_url}/", headers),
             "bucket": self._check_component(f"{self.bucket_url}/bucket/stats", headers)
         }
+        all_healthy = all(comp["status"] == "healthy" for comp in components.values())
+        return {
+            "pipeline_status": "healthy" if all_healthy else "degraded",
+            "components": components,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
 
     def _normalize_prompt(self, user_prompt: str, product_context: str) -> str:
         adapter = self.input_adapters.get(product_context)
@@ -408,14 +407,6 @@ class BHIVIntegrationBridge:
             except Exception:
                 return {"status": "adapter_error", "raw": execution_result}
         return execution_result
-        
-        all_healthy = all(comp["status"] == "healthy" for comp in components.values())
-        
-        return {
-            "pipeline_status": "healthy" if all_healthy else "degraded",
-            "components": components,
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        }
     
     def _check_component(self, url: str, headers: Dict[str, str]) -> Dict[str, Any]:
         """Check individual component health"""

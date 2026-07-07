@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-07T11:19:09.950575+00:00",
+  "generated_at": "2026-07-07T12:54:59.071899+00:00",
   "classification": "live_service_evidence",
   "health_checks": [
     {
@@ -7,7 +7,7 @@
       "url": "http://127.0.0.1:8003/health",
       "status_code": 200,
       "healthy": true,
-      "latency_ms": 4.32,
+      "latency_ms": 5.46,
       "body": {
         "status": "ok",
         "service": "prompt_runner"
@@ -18,7 +18,7 @@
       "url": "http://127.0.0.1:8000/",
       "status_code": 200,
       "healthy": true,
-      "latency_ms": 3.08,
+      "latency_ms": 2.07,
       "body": {
         "message": "Unified Backend Bridge API",
         "version": "1.0.0",
@@ -38,25 +38,61 @@
       "url": "http://127.0.0.1:8004/pipeline/health",
       "status_code": 200,
       "healthy": true,
-      "latency_ms": 44.83,
-      "body": null
+      "latency_ms": 4621.51,
+      "body": {
+        "pipeline_status": "healthy",
+        "components": {
+          "prompt_runner": {
+            "status": "healthy",
+            "code": 200
+          },
+          "creator_core": {
+            "status": "healthy",
+            "code": 200
+          },
+          "cet": {
+            "status": "healthy",
+            "code": 200
+          },
+          "sarathi": {
+            "status": "healthy",
+            "code": 200
+          },
+          "gate": {
+            "status": "healthy",
+            "code": 200
+          },
+          "bhiv_core": {
+            "status": "healthy",
+            "code": 200
+          },
+          "bucket": {
+            "status": "healthy",
+            "code": 200
+          }
+        },
+        "timestamp": "2026-07-07T12:55:03.666679+00:00"
+      }
     },
     {
       "service": "bucket",
       "url": "http://127.0.0.1:8005/bucket/stats",
       "status_code": 200,
       "healthy": true,
-      "latency_ms": 11.12,
+      "latency_ms": 11.42,
       "body": {
-        "total_artifacts": 128,
+        "total_artifacts": 227,
         "by_type": {
-          "instruction": 51,
-          "blueprint": 51,
-          "execution": 13,
-          "result": 13
+          "instruction": 70,
+          "blueprint": 67,
+          "contract": 12,
+          "authority": 12,
+          "gate": 12,
+          "execution": 27,
+          "result": 27
         },
-        "total_traces": 39,
-        "storage_size_mb": 0.17
+        "total_traces": 58,
+        "storage_size_mb": 0.34
       }
     },
     {
@@ -64,7 +100,7 @@
       "url": "http://127.0.0.1:8006/health",
       "status_code": 200,
       "healthy": true,
-      "latency_ms": 2.19,
+      "latency_ms": 2.73,
       "body": {
         "status": "ok",
         "service": "cet"
@@ -75,7 +111,7 @@
       "url": "http://127.0.0.1:8007/health",
       "status_code": 200,
       "healthy": true,
-      "latency_ms": 2.42,
+      "latency_ms": 3.2,
       "body": {
         "status": "ok",
         "service": "sarathi"
@@ -86,7 +122,7 @@
       "url": "http://127.0.0.1:8008/health",
       "status_code": 200,
       "healthy": true,
-      "latency_ms": 2.07,
+      "latency_ms": 3.05,
       "body": {
         "status": "ok",
         "service": "gate"
@@ -96,24 +132,24 @@
   "product_runs": [
     {
       "product": "ttg",
-      "trace_id": "comp_ttg_2f81022aee",
-      "workflow_id": "wf_9407ff3b",
-      "timestamp": "2026-07-07T11:19:13.022135+00:00",
+      "trace_id": "comp_ttg_434a5d3954",
+      "workflow_id": "wf_95ec1a02",
+      "timestamp": "2026-07-07T12:55:06.722897+00:00",
       "pipeline_status_code": 200,
       "pipeline_body": {
         "status": "success",
-        "trace_id": "comp_ttg_2f81022aee",
-        "workflow_id": "wf_9407ff3b",
+        "trace_id": "comp_ttg_434a5d3954",
+        "workflow_id": "wf_95ec1a02",
         "artifact_chain": {
-          "trace_id": "comp_ttg_2f81022aee",
-          "workflow_id": "wf_9407ff3b",
-          "A1_instruction": "instruction_c8d3d10d",
-          "A2_blueprint": "blueprint_2dd816ac",
-          "A2b_contract": "contract_67139eca",
-          "A2c_authority": "authority_e68e0408",
-          "A2d_gate": "gate_5bd1f06e",
-          "A3_execution": "execution_65841e95",
-          "A4_result": "result_dd7e8cac"
+          "trace_id": "comp_ttg_434a5d3954",
+          "workflow_id": "wf_95ec1a02",
+          "A1_instruction": "instruction_2efdd152",
+          "A2_blueprint": "blueprint_218ff85c",
+          "A2b_contract": "contract_3e8e2984",
+          "A2c_authority": "authority_8d12c957",
+          "A2d_gate": "gate_52317e2d",
+          "A3_execution": "execution_7f6d5880",
+          "A4_result": "result_56e6ce6c"
         },
         "pipeline_result": {
           "original_prompt": "Design a cooperative dungeon board game with card drafting mechanics",
@@ -127,13 +163,13 @@
             ],
             "output_format": "json",
             "product_context": "ttg",
-            "trace_id": "comp_ttg_2f81022aee",
-            "workflow_id": "wf_9407ff3b",
-            "instruction_id": "comp_ttg_2f81022aee"
+            "trace_id": "comp_ttg_434a5d3954",
+            "workflow_id": "wf_95ec1a02",
+            "instruction_id": "comp_ttg_434a5d3954"
           },
           "blueprint_envelope": {
             "blueprint": {
-              "instruction_id": "8df9b495-31c7-46ae-b955-dd39a091e59b",
+              "instruction_id": "aadd2524-f055-4d0c-b27f-279bd5efcf99",
               "origin": "creator_core",
               "intent_type": "generate",
               "target_product": "creator",
@@ -147,15 +183,15 @@
                 ]
               },
               "schema_version": "1.0",
-              "timestamp": "2026-07-07T11:19:13.042438+00:00"
+              "timestamp": "2026-07-07T12:55:06.746550+00:00"
             },
-            "trace_id": "comp_ttg_2f81022aee",
-            "workflow_id": "wf_9407ff3b"
+            "trace_id": "comp_ttg_434a5d3954",
+            "workflow_id": "wf_95ec1a02"
           },
           "contract": {
-            "contract_id": "contract_604ee7b48f73",
-            "instruction_id": "comp_ttg_2f81022aee",
-            "trace_id": "comp_ttg_2f81022aee",
+            "contract_id": "contract_3ae6af8b840a",
+            "instruction_id": "comp_ttg_434a5d3954",
+            "trace_id": "comp_ttg_434a5d3954",
             "execution_plan": {
               "target_module": "creator",
               "execution_intent": "generate",
@@ -176,50 +212,50 @@
               "deterministic": true,
               "replay_safe": true
             },
-            "contract_hash": "e2d2c479e212fba71f3d91db0e172f065a55cbffaa37d006046c83b3a7096c9e",
-            "timestamp": "2026-07-07T11:19:13.074937+00:00",
+            "contract_hash": "76d7cba99130b8987982bd58109c3540c8a690682355981b198140214baeddb0",
+            "timestamp": "2026-07-07T12:55:06.766997+00:00",
             "schema_version": "1.0.0"
           },
           "authority_decision": {
             "allowed": true,
             "reason": "valid_contract",
-            "contract_id": "contract_604ee7b48f73",
-            "trace_id": "comp_ttg_2f81022aee",
-            "decision_id": "decision_contract_604ee7b48f73",
-            "timestamp": "2026-07-07T11:19:13.088049+00:00",
+            "contract_id": "contract_3ae6af8b840a",
+            "trace_id": "comp_ttg_434a5d3954",
+            "decision_id": "decision_contract_3ae6af8b840a",
+            "timestamp": "2026-07-07T12:55:06.786380+00:00",
             "validation_checks": {
-              "has_contract_id": "contract_604ee7b48f73",
-              "has_trace_id": "comp_ttg_2f81022aee",
+              "has_contract_id": "contract_3ae6af8b840a",
+              "has_trace_id": "comp_ttg_434a5d3954",
               "has_execution_plan": true,
               "has_valid_module": "creator",
               "has_constraints": true,
-              "has_contract_hash": "e2d2c479e212fba71f3d91db0e172f065a55cbffaa37d006046c83b3a7096c9e"
+              "has_contract_hash": "76d7cba99130b8987982bd58109c3540c8a690682355981b198140214baeddb0"
             }
           },
           "gate_decision": {
             "status": "allowed",
             "message": "Execution approved by gate",
             "result": {},
-            "contract_id": "contract_604ee7b48f73",
-            "trace_id": "comp_ttg_2f81022aee",
+            "contract_id": "contract_3ae6af8b840a",
+            "trace_id": "comp_ttg_434a5d3954",
             "gate_status": "ALLOWED",
             "authority_decision": {
               "allowed": true,
               "reason": "valid_contract",
-              "contract_id": "contract_604ee7b48f73",
-              "trace_id": "comp_ttg_2f81022aee",
-              "decision_id": "decision_contract_604ee7b48f73",
-              "timestamp": "2026-07-07T11:19:13.088049+00:00",
+              "contract_id": "contract_3ae6af8b840a",
+              "trace_id": "comp_ttg_434a5d3954",
+              "decision_id": "decision_contract_3ae6af8b840a",
+              "timestamp": "2026-07-07T12:55:06.786380+00:00",
               "validation_checks": {
-                "has_contract_id": "contract_604ee7b48f73",
-                "has_trace_id": "comp_ttg_2f81022aee",
+                "has_contract_id": "contract_3ae6af8b840a",
+                "has_trace_id": "comp_ttg_434a5d3954",
                 "has_execution_plan": true,
                 "has_valid_module": "creator",
                 "has_constraints": true,
-                "has_contract_hash": "e2d2c479e212fba71f3d91db0e172f065a55cbffaa37d006046c83b3a7096c9e"
+                "has_contract_hash": "76d7cba99130b8987982bd58109c3540c8a690682355981b198140214baeddb0"
               }
             },
-            "timestamp": "2026-07-07T11:19:13.100925+00:00"
+            "timestamp": "2026-07-07T12:55:06.804344+00:00"
           },
           "execution_result": {
             "status": "success",
@@ -238,15 +274,15 @@
                   ]
                 },
                 "target_product": "creator",
-                "trace_id": "comp_ttg_2f81022aee",
-                "workflow_id": "wf_9407ff3b"
+                "trace_id": "comp_ttg_434a5d3954",
+                "workflow_id": "wf_95ec1a02"
               }
             },
-            "trace_id": "comp_ttg_2f81022aee",
-            "workflow_id": "wf_9407ff3b"
+            "trace_id": "comp_ttg_434a5d3954",
+            "workflow_id": "wf_95ec1a02"
           },
           "pipeline_status": "completed",
-          "deterministic_hash": "f9911196d8c7f368",
+          "deterministic_hash": "fd831a2e7c847d0e",
           "product_output": {
             "game_content": {
               "title": "Untitled Game",
@@ -274,55 +310,59 @@
               "status": "success"
             }
           },
-          "trace_id": "comp_ttg_2f81022aee",
-          "workflow_id": "wf_9407ff3b"
+          "trace_id": "comp_ttg_434a5d3954",
+          "workflow_id": "wf_95ec1a02"
         },
-        "timestamp": "2026-07-07T11:19:13.186169+00:00"
+        "timestamp": "2026-07-07T12:55:06.892588+00:00"
       },
       "artifact_chain": {
-        "trace_id": "comp_ttg_2f81022aee",
-        "workflow_id": "wf_9407ff3b",
-        "A1_instruction": "instruction_c8d3d10d",
-        "A2_blueprint": "blueprint_2dd816ac",
-        "A2b_contract": "contract_67139eca",
-        "A2c_authority": "authority_e68e0408",
-        "A2d_gate": "gate_5bd1f06e",
-        "A3_execution": "execution_65841e95",
-        "A4_result": "result_dd7e8cac"
+        "trace_id": "comp_ttg_434a5d3954",
+        "workflow_id": "wf_95ec1a02",
+        "A1_instruction": "instruction_2efdd152",
+        "A2_blueprint": "blueprint_218ff85c",
+        "A2b_contract": "contract_3e8e2984",
+        "A2c_authority": "authority_8d12c957",
+        "A2d_gate": "gate_52317e2d",
+        "A3_execution": "execution_7f6d5880",
+        "A4_result": "result_56e6ce6c"
       },
       "chain_complete": true,
       "replay_status_code": 200,
       "replay_passed": true,
       "bucket_status_code": 200,
-      "bucket_artifact_count": 4,
+      "bucket_artifact_count": 7,
       "bucket_artifact_types": [
-        "instruction",
+        "authority",
         "blueprint",
+        "contract",
         "execution",
+        "gate",
+        "instruction",
         "result"
       ],
+      "bucket_has_all_7_types": true,
       "passed": true
     },
     {
       "product": "ttv",
-      "trace_id": "comp_ttv_49a28b3bbd",
-      "workflow_id": "wf_feb7b602",
-      "timestamp": "2026-07-07T11:19:16.789308+00:00",
+      "trace_id": "comp_ttv_49093259a5",
+      "workflow_id": "wf_a43e15fa",
+      "timestamp": "2026-07-07T12:55:10.483047+00:00",
       "pipeline_status_code": 200,
       "pipeline_body": {
         "status": "success",
-        "trace_id": "comp_ttv_49a28b3bbd",
-        "workflow_id": "wf_feb7b602",
+        "trace_id": "comp_ttv_49093259a5",
+        "workflow_id": "wf_a43e15fa",
         "artifact_chain": {
-          "trace_id": "comp_ttv_49a28b3bbd",
-          "workflow_id": "wf_feb7b602",
-          "A1_instruction": "instruction_32265c03",
-          "A2_blueprint": "blueprint_a326a618",
-          "A2b_contract": "contract_d709f358",
-          "A2c_authority": "authority_68437ac2",
-          "A2d_gate": "gate_b343e5da",
-          "A3_execution": "execution_2b8cb794",
-          "A4_result": "result_4e2b2598"
+          "trace_id": "comp_ttv_49093259a5",
+          "workflow_id": "wf_a43e15fa",
+          "A1_instruction": "instruction_fc03baca",
+          "A2_blueprint": "blueprint_2749814d",
+          "A2b_contract": "contract_376eab32",
+          "A2c_authority": "authority_13cc728e",
+          "A2d_gate": "gate_937092c8",
+          "A3_execution": "execution_589ede47",
+          "A4_result": "result_4e620588"
         },
         "pipeline_result": {
           "original_prompt": "Create a short educational video script about photosynthesis for students",
@@ -336,13 +376,13 @@
             ],
             "output_format": "json",
             "product_context": "ttv",
-            "trace_id": "comp_ttv_49a28b3bbd",
-            "workflow_id": "wf_feb7b602",
-            "instruction_id": "comp_ttv_49a28b3bbd"
+            "trace_id": "comp_ttv_49093259a5",
+            "workflow_id": "wf_a43e15fa",
+            "instruction_id": "comp_ttv_49093259a5"
           },
           "blueprint_envelope": {
             "blueprint": {
-              "instruction_id": "716634d5-47a9-414e-bc4d-c4253783e798",
+              "instruction_id": "71ca5b09-6de9-4c84-a0e4-4908892a52c0",
               "origin": "creator_core",
               "intent_type": "generate",
               "target_product": "creator",
@@ -356,15 +396,15 @@
                 ]
               },
               "schema_version": "1.0",
-              "timestamp": "2026-07-07T11:19:16.809187+00:00"
+              "timestamp": "2026-07-07T12:55:10.498336+00:00"
             },
-            "trace_id": "comp_ttv_49a28b3bbd",
-            "workflow_id": "wf_feb7b602"
+            "trace_id": "comp_ttv_49093259a5",
+            "workflow_id": "wf_a43e15fa"
           },
           "contract": {
-            "contract_id": "contract_e50a5edf8026",
-            "instruction_id": "comp_ttv_49a28b3bbd",
-            "trace_id": "comp_ttv_49a28b3bbd",
+            "contract_id": "contract_19ba22fb7c38",
+            "instruction_id": "comp_ttv_49093259a5",
+            "trace_id": "comp_ttv_49093259a5",
             "execution_plan": {
               "target_module": "creator",
               "execution_intent": "generate",
@@ -385,50 +425,50 @@
               "deterministic": true,
               "replay_safe": true
             },
-            "contract_hash": "1848cfb27770d7093c80f99877c1a0110f661cef722e94dce926c33a54a11181",
-            "timestamp": "2026-07-07T11:19:16.837878+00:00",
+            "contract_hash": "cbdd1f94d11bce84bfca49f7c8c2660d0bd4a8e52a98f27295225773dda9307d",
+            "timestamp": "2026-07-07T12:55:10.522682+00:00",
             "schema_version": "1.0.0"
           },
           "authority_decision": {
             "allowed": true,
             "reason": "valid_contract",
-            "contract_id": "contract_e50a5edf8026",
-            "trace_id": "comp_ttv_49a28b3bbd",
-            "decision_id": "decision_contract_e50a5edf8026",
-            "timestamp": "2026-07-07T11:19:16.850323+00:00",
+            "contract_id": "contract_19ba22fb7c38",
+            "trace_id": "comp_ttv_49093259a5",
+            "decision_id": "decision_contract_19ba22fb7c38",
+            "timestamp": "2026-07-07T12:55:10.542399+00:00",
             "validation_checks": {
-              "has_contract_id": "contract_e50a5edf8026",
-              "has_trace_id": "comp_ttv_49a28b3bbd",
+              "has_contract_id": "contract_19ba22fb7c38",
+              "has_trace_id": "comp_ttv_49093259a5",
               "has_execution_plan": true,
               "has_valid_module": "creator",
               "has_constraints": true,
-              "has_contract_hash": "1848cfb27770d7093c80f99877c1a0110f661cef722e94dce926c33a54a11181"
+              "has_contract_hash": "cbdd1f94d11bce84bfca49f7c8c2660d0bd4a8e52a98f27295225773dda9307d"
             }
           },
           "gate_decision": {
             "status": "allowed",
             "message": "Execution approved by gate",
             "result": {},
-            "contract_id": "contract_e50a5edf8026",
-            "trace_id": "comp_ttv_49a28b3bbd",
+            "contract_id": "contract_19ba22fb7c38",
+            "trace_id": "comp_ttv_49093259a5",
             "gate_status": "ALLOWED",
             "authority_decision": {
               "allowed": true,
               "reason": "valid_contract",
-              "contract_id": "contract_e50a5edf8026",
-              "trace_id": "comp_ttv_49a28b3bbd",
-              "decision_id": "decision_contract_e50a5edf8026",
-              "timestamp": "2026-07-07T11:19:16.850323+00:00",
+              "contract_id": "contract_19ba22fb7c38",
+              "trace_id": "comp_ttv_49093259a5",
+              "decision_id": "decision_contract_19ba22fb7c38",
+              "timestamp": "2026-07-07T12:55:10.542399+00:00",
               "validation_checks": {
-                "has_contract_id": "contract_e50a5edf8026",
-                "has_trace_id": "comp_ttv_49a28b3bbd",
+                "has_contract_id": "contract_19ba22fb7c38",
+                "has_trace_id": "comp_ttv_49093259a5",
                 "has_execution_plan": true,
                 "has_valid_module": "creator",
                 "has_constraints": true,
-                "has_contract_hash": "1848cfb27770d7093c80f99877c1a0110f661cef722e94dce926c33a54a11181"
+                "has_contract_hash": "cbdd1f94d11bce84bfca49f7c8c2660d0bd4a8e52a98f27295225773dda9307d"
               }
             },
-            "timestamp": "2026-07-07T11:19:16.863354+00:00"
+            "timestamp": "2026-07-07T12:55:10.560533+00:00"
           },
           "execution_result": {
             "status": "success",
@@ -447,15 +487,15 @@
                   ]
                 },
                 "target_product": "creator",
-                "trace_id": "comp_ttv_49a28b3bbd",
-                "workflow_id": "wf_feb7b602"
+                "trace_id": "comp_ttv_49093259a5",
+                "workflow_id": "wf_a43e15fa"
               }
             },
-            "trace_id": "comp_ttv_49a28b3bbd",
-            "workflow_id": "wf_feb7b602"
+            "trace_id": "comp_ttv_49093259a5",
+            "workflow_id": "wf_a43e15fa"
           },
           "pipeline_status": "completed",
-          "deterministic_hash": "45b2385d2872f48d",
+          "deterministic_hash": "c8a9a0245c7f5db6",
           "product_output": {
             "video_script": {
               "title": "Untitled Video",
@@ -498,55 +538,59 @@
               "status": "success"
             }
           },
-          "trace_id": "comp_ttv_49a28b3bbd",
-          "workflow_id": "wf_feb7b602"
+          "trace_id": "comp_ttv_49093259a5",
+          "workflow_id": "wf_a43e15fa"
         },
-        "timestamp": "2026-07-07T11:19:16.944165+00:00"
+        "timestamp": "2026-07-07T12:55:10.646508+00:00"
       },
       "artifact_chain": {
-        "trace_id": "comp_ttv_49a28b3bbd",
-        "workflow_id": "wf_feb7b602",
-        "A1_instruction": "instruction_32265c03",
-        "A2_blueprint": "blueprint_a326a618",
-        "A2b_contract": "contract_d709f358",
-        "A2c_authority": "authority_68437ac2",
-        "A2d_gate": "gate_b343e5da",
-        "A3_execution": "execution_2b8cb794",
-        "A4_result": "result_4e2b2598"
+        "trace_id": "comp_ttv_49093259a5",
+        "workflow_id": "wf_a43e15fa",
+        "A1_instruction": "instruction_fc03baca",
+        "A2_blueprint": "blueprint_2749814d",
+        "A2b_contract": "contract_376eab32",
+        "A2c_authority": "authority_13cc728e",
+        "A2d_gate": "gate_937092c8",
+        "A3_execution": "execution_589ede47",
+        "A4_result": "result_4e620588"
       },
       "chain_complete": true,
       "replay_status_code": 200,
       "replay_passed": true,
       "bucket_status_code": 200,
-      "bucket_artifact_count": 4,
+      "bucket_artifact_count": 7,
       "bucket_artifact_types": [
-        "instruction",
+        "authority",
         "blueprint",
+        "contract",
         "execution",
+        "gate",
+        "instruction",
         "result"
       ],
+      "bucket_has_all_7_types": true,
       "passed": true
     },
     {
       "product": "gurukul",
-      "trace_id": "comp_gurukul_a8535de499",
-      "workflow_id": "wf_12c36bfa",
-      "timestamp": "2026-07-07T11:19:20.538106+00:00",
+      "trace_id": "comp_gurukul_db1cef24b5",
+      "workflow_id": "wf_f2f7be6e",
+      "timestamp": "2026-07-07T12:55:14.252422+00:00",
       "pipeline_status_code": 200,
       "pipeline_body": {
         "status": "success",
-        "trace_id": "comp_gurukul_a8535de499",
-        "workflow_id": "wf_12c36bfa",
+        "trace_id": "comp_gurukul_db1cef24b5",
+        "workflow_id": "wf_f2f7be6e",
         "artifact_chain": {
-          "trace_id": "comp_gurukul_a8535de499",
-          "workflow_id": "wf_12c36bfa",
-          "A1_instruction": "instruction_3b51cca0",
-          "A2_blueprint": "blueprint_42004d74",
-          "A2b_contract": "contract_8118a1b8",
-          "A2c_authority": "authority_3dda5126",
-          "A2d_gate": "gate_cee0da04",
-          "A3_execution": "execution_17266de3",
-          "A4_result": "result_f16cbb86"
+          "trace_id": "comp_gurukul_db1cef24b5",
+          "workflow_id": "wf_f2f7be6e",
+          "A1_instruction": "instruction_f5f8caf3",
+          "A2_blueprint": "blueprint_23003aeb",
+          "A2b_contract": "contract_ba112870",
+          "A2c_authority": "authority_d2d26456",
+          "A2d_gate": "gate_092884b2",
+          "A3_execution": "execution_ac186b65",
+          "A4_result": "result_9d2f265b"
         },
         "pipeline_result": {
           "original_prompt": "Plan a lesson on algebra fundamentals for grade 8 students",
@@ -561,13 +605,13 @@
             ],
             "output_format": "json",
             "product_context": "gurukul",
-            "trace_id": "comp_gurukul_a8535de499",
-            "workflow_id": "wf_12c36bfa",
-            "instruction_id": "comp_gurukul_a8535de499"
+            "trace_id": "comp_gurukul_db1cef24b5",
+            "workflow_id": "wf_f2f7be6e",
+            "instruction_id": "comp_gurukul_db1cef24b5"
           },
           "blueprint_envelope": {
             "blueprint": {
-              "instruction_id": "a8a77bec-fe23-436c-9fb3-1a60ac456ee7",
+              "instruction_id": "dc3df79a-1efd-4d81-a503-59a338c7f053",
               "origin": "creator_core",
               "intent_type": "generate",
               "target_product": "education",
@@ -582,15 +626,15 @@
                 ]
               },
               "schema_version": "1.0",
-              "timestamp": "2026-07-07T11:19:20.553554+00:00"
+              "timestamp": "2026-07-07T12:55:14.271422+00:00"
             },
-            "trace_id": "comp_gurukul_a8535de499",
-            "workflow_id": "wf_12c36bfa"
+            "trace_id": "comp_gurukul_db1cef24b5",
+            "workflow_id": "wf_f2f7be6e"
           },
           "contract": {
-            "contract_id": "contract_01b903efbfd1",
-            "instruction_id": "comp_gurukul_a8535de499",
-            "trace_id": "comp_gurukul_a8535de499",
+            "contract_id": "contract_cc19cf751e71",
+            "instruction_id": "comp_gurukul_db1cef24b5",
+            "trace_id": "comp_gurukul_db1cef24b5",
             "execution_plan": {
               "target_module": "education",
               "execution_intent": "generate",
@@ -612,50 +656,50 @@
               "deterministic": true,
               "replay_safe": true
             },
-            "contract_hash": "c717891bcf27f35c9e93c902b52b3df7a54047836f7c4ac91714e3f4f97a3e06",
-            "timestamp": "2026-07-07T11:19:20.583868+00:00",
+            "contract_hash": "47ff5138198965140708dacba31f3a70e02877d222be9c55577d1ff8cee28aba",
+            "timestamp": "2026-07-07T12:55:14.304542+00:00",
             "schema_version": "1.0.0"
           },
           "authority_decision": {
             "allowed": true,
             "reason": "valid_contract",
-            "contract_id": "contract_01b903efbfd1",
-            "trace_id": "comp_gurukul_a8535de499",
-            "decision_id": "decision_contract_01b903efbfd1",
-            "timestamp": "2026-07-07T11:19:20.594574+00:00",
+            "contract_id": "contract_cc19cf751e71",
+            "trace_id": "comp_gurukul_db1cef24b5",
+            "decision_id": "decision_contract_cc19cf751e71",
+            "timestamp": "2026-07-07T12:55:14.338793+00:00",
             "validation_checks": {
-              "has_contract_id": "contract_01b903efbfd1",
-              "has_trace_id": "comp_gurukul_a8535de499",
+              "has_contract_id": "contract_cc19cf751e71",
+              "has_trace_id": "comp_gurukul_db1cef24b5",
               "has_execution_plan": true,
               "has_valid_module": "education",
               "has_constraints": true,
-              "has_contract_hash": "c717891bcf27f35c9e93c902b52b3df7a54047836f7c4ac91714e3f4f97a3e06"
+              "has_contract_hash": "47ff5138198965140708dacba31f3a70e02877d222be9c55577d1ff8cee28aba"
             }
           },
           "gate_decision": {
             "status": "allowed",
             "message": "Execution approved by gate",
             "result": {},
-            "contract_id": "contract_01b903efbfd1",
-            "trace_id": "comp_gurukul_a8535de499",
+            "contract_id": "contract_cc19cf751e71",
+            "trace_id": "comp_gurukul_db1cef24b5",
             "gate_status": "ALLOWED",
             "authority_decision": {
               "allowed": true,
               "reason": "valid_contract",
-              "contract_id": "contract_01b903efbfd1",
-              "trace_id": "comp_gurukul_a8535de499",
-              "decision_id": "decision_contract_01b903efbfd1",
-              "timestamp": "2026-07-07T11:19:20.594574+00:00",
+              "contract_id": "contract_cc19cf751e71",
+              "trace_id": "comp_gurukul_db1cef24b5",
+              "decision_id": "decision_contract_cc19cf751e71",
+              "timestamp": "2026-07-07T12:55:14.338793+00:00",
               "validation_checks": {
-                "has_contract_id": "contract_01b903efbfd1",
-                "has_trace_id": "comp_gurukul_a8535de499",
+                "has_contract_id": "contract_cc19cf751e71",
+                "has_trace_id": "comp_gurukul_db1cef24b5",
                 "has_execution_plan": true,
                 "has_valid_module": "education",
                 "has_constraints": true,
-                "has_contract_hash": "c717891bcf27f35c9e93c902b52b3df7a54047836f7c4ac91714e3f4f97a3e06"
+                "has_contract_hash": "47ff5138198965140708dacba31f3a70e02877d222be9c55577d1ff8cee28aba"
               }
             },
-            "timestamp": "2026-07-07T11:19:20.606344+00:00"
+            "timestamp": "2026-07-07T12:55:14.368340+00:00"
           },
           "execution_result": {
             "status": "success",
@@ -675,15 +719,15 @@
                   ]
                 },
                 "target_product": "education",
-                "trace_id": "comp_gurukul_a8535de499",
-                "workflow_id": "wf_12c36bfa"
+                "trace_id": "comp_gurukul_db1cef24b5",
+                "workflow_id": "wf_f2f7be6e"
               }
             },
-            "trace_id": "comp_gurukul_a8535de499",
-            "workflow_id": "wf_12c36bfa"
+            "trace_id": "comp_gurukul_db1cef24b5",
+            "workflow_id": "wf_f2f7be6e"
           },
           "pipeline_status": "completed",
-          "deterministic_hash": "3dd8f4c0f573eba4",
+          "deterministic_hash": "c49c3163486ac753",
           "product_output": {
             "lesson_plan": {
               "content": "Generated content for: unknown topic",
@@ -700,8 +744,8 @@
                   ]
                 },
                 "target_product": "education",
-                "trace_id": "comp_gurukul_a8535de499",
-                "workflow_id": "wf_12c36bfa"
+                "trace_id": "comp_gurukul_db1cef24b5",
+                "workflow_id": "wf_f2f7be6e"
               }
             },
             "assessment": {},
@@ -709,55 +753,59 @@
               "status": "success"
             }
           },
-          "trace_id": "comp_gurukul_a8535de499",
-          "workflow_id": "wf_12c36bfa"
+          "trace_id": "comp_gurukul_db1cef24b5",
+          "workflow_id": "wf_f2f7be6e"
         },
-        "timestamp": "2026-07-07T11:19:20.690289+00:00"
+        "timestamp": "2026-07-07T12:55:14.464398+00:00"
       },
       "artifact_chain": {
-        "trace_id": "comp_gurukul_a8535de499",
-        "workflow_id": "wf_12c36bfa",
-        "A1_instruction": "instruction_3b51cca0",
-        "A2_blueprint": "blueprint_42004d74",
-        "A2b_contract": "contract_8118a1b8",
-        "A2c_authority": "authority_3dda5126",
-        "A2d_gate": "gate_cee0da04",
-        "A3_execution": "execution_17266de3",
-        "A4_result": "result_f16cbb86"
+        "trace_id": "comp_gurukul_db1cef24b5",
+        "workflow_id": "wf_f2f7be6e",
+        "A1_instruction": "instruction_f5f8caf3",
+        "A2_blueprint": "blueprint_23003aeb",
+        "A2b_contract": "contract_ba112870",
+        "A2c_authority": "authority_d2d26456",
+        "A2d_gate": "gate_092884b2",
+        "A3_execution": "execution_ac186b65",
+        "A4_result": "result_9d2f265b"
       },
       "chain_complete": true,
       "replay_status_code": 200,
       "replay_passed": true,
       "bucket_status_code": 200,
-      "bucket_artifact_count": 4,
+      "bucket_artifact_count": 7,
       "bucket_artifact_types": [
-        "instruction",
+        "authority",
         "blueprint",
+        "contract",
         "execution",
+        "gate",
+        "instruction",
         "result"
       ],
+      "bucket_has_all_7_types": true,
       "passed": true
     },
     {
       "product": "simulation_runtime",
-      "trace_id": "comp_simulation_runtime_de6b34f42a",
-      "workflow_id": "wf_81aadc98",
-      "timestamp": "2026-07-07T11:19:24.279214+00:00",
+      "trace_id": "comp_simulation_runtime_4397308533",
+      "workflow_id": "wf_e41379d8",
+      "timestamp": "2026-07-07T12:55:18.066081+00:00",
       "pipeline_status_code": 200,
       "pipeline_body": {
         "status": "success",
-        "trace_id": "comp_simulation_runtime_de6b34f42a",
-        "workflow_id": "wf_81aadc98",
+        "trace_id": "comp_simulation_runtime_4397308533",
+        "workflow_id": "wf_e41379d8",
         "artifact_chain": {
-          "trace_id": "comp_simulation_runtime_de6b34f42a",
-          "workflow_id": "wf_81aadc98",
-          "A1_instruction": "instruction_877c7bdb",
-          "A2_blueprint": "blueprint_5c65418f",
-          "A2b_contract": "contract_ee0fa679",
-          "A2c_authority": "authority_07b28a58",
-          "A2d_gate": "gate_37f9ade7",
-          "A3_execution": "execution_d220120f",
-          "A4_result": "result_6e70716d"
+          "trace_id": "comp_simulation_runtime_4397308533",
+          "workflow_id": "wf_e41379d8",
+          "A1_instruction": "instruction_6983d2c8",
+          "A2_blueprint": "blueprint_5f8fd8db",
+          "A2b_contract": "contract_39b559d5",
+          "A2c_authority": "authority_e9ee635f",
+          "A2d_gate": "gate_f150f418",
+          "A3_execution": "execution_562f265c",
+          "A4_result": "result_10562b07"
         },
         "pipeline_result": {
           "original_prompt": "Simulate a supply chain disruption scenario with recovery options",
@@ -771,13 +819,13 @@
             ],
             "output_format": "json",
             "product_context": "simulation_runtime",
-            "trace_id": "comp_simulation_runtime_de6b34f42a",
-            "workflow_id": "wf_81aadc98",
-            "instruction_id": "comp_simulation_runtime_de6b34f42a"
+            "trace_id": "comp_simulation_runtime_4397308533",
+            "workflow_id": "wf_e41379d8",
+            "instruction_id": "comp_simulation_runtime_4397308533"
           },
           "blueprint_envelope": {
             "blueprint": {
-              "instruction_id": "4e4bca7c-9cb0-4779-ae14-7fd3c06ee691",
+              "instruction_id": "53375c7b-9309-4415-87e8-29603cadf2e2",
               "origin": "creator_core",
               "intent_type": "generate",
               "target_product": "creator",
@@ -791,15 +839,15 @@
                 ]
               },
               "schema_version": "1.0",
-              "timestamp": "2026-07-07T11:19:24.302798+00:00"
+              "timestamp": "2026-07-07T12:55:18.080342+00:00"
             },
-            "trace_id": "comp_simulation_runtime_de6b34f42a",
-            "workflow_id": "wf_81aadc98"
+            "trace_id": "comp_simulation_runtime_4397308533",
+            "workflow_id": "wf_e41379d8"
           },
           "contract": {
-            "contract_id": "contract_fd21dd451d5b",
-            "instruction_id": "comp_simulation_runtime_de6b34f42a",
-            "trace_id": "comp_simulation_runtime_de6b34f42a",
+            "contract_id": "contract_2188a1e68a48",
+            "instruction_id": "comp_simulation_runtime_4397308533",
+            "trace_id": "comp_simulation_runtime_4397308533",
             "execution_plan": {
               "target_module": "creator",
               "execution_intent": "generate",
@@ -820,50 +868,50 @@
               "deterministic": true,
               "replay_safe": true
             },
-            "contract_hash": "b9a028248e1b67c208528d4f0e4a57e090aeadcfbff79692973698330d69be4a",
-            "timestamp": "2026-07-07T11:19:24.336897+00:00",
+            "contract_hash": "1a6a844485045e36a008ea1282347f46fe01651271f6f26366dd64c6d489c2f1",
+            "timestamp": "2026-07-07T12:55:18.105837+00:00",
             "schema_version": "1.0.0"
           },
           "authority_decision": {
             "allowed": true,
             "reason": "valid_contract",
-            "contract_id": "contract_fd21dd451d5b",
-            "trace_id": "comp_simulation_runtime_de6b34f42a",
-            "decision_id": "decision_contract_fd21dd451d5b",
-            "timestamp": "2026-07-07T11:19:24.351049+00:00",
+            "contract_id": "contract_2188a1e68a48",
+            "trace_id": "comp_simulation_runtime_4397308533",
+            "decision_id": "decision_contract_2188a1e68a48",
+            "timestamp": "2026-07-07T12:55:18.123411+00:00",
             "validation_checks": {
-              "has_contract_id": "contract_fd21dd451d5b",
-              "has_trace_id": "comp_simulation_runtime_de6b34f42a",
+              "has_contract_id": "contract_2188a1e68a48",
+              "has_trace_id": "comp_simulation_runtime_4397308533",
               "has_execution_plan": true,
               "has_valid_module": "creator",
               "has_constraints": true,
-              "has_contract_hash": "b9a028248e1b67c208528d4f0e4a57e090aeadcfbff79692973698330d69be4a"
+              "has_contract_hash": "1a6a844485045e36a008ea1282347f46fe01651271f6f26366dd64c6d489c2f1"
             }
           },
           "gate_decision": {
             "status": "allowed",
             "message": "Execution approved by gate",
             "result": {},
-            "contract_id": "contract_fd21dd451d5b",
-            "trace_id": "comp_simulation_runtime_de6b34f42a",
+            "contract_id": "contract_2188a1e68a48",
+            "trace_id": "comp_simulation_runtime_4397308533",
             "gate_status": "ALLOWED",
             "authority_decision": {
               "allowed": true,
               "reason": "valid_contract",
-              "contract_id": "contract_fd21dd451d5b",
-              "trace_id": "comp_simulation_runtime_de6b34f42a",
-              "decision_id": "decision_contract_fd21dd451d5b",
-              "timestamp": "2026-07-07T11:19:24.351049+00:00",
+              "contract_id": "contract_2188a1e68a48",
+              "trace_id": "comp_simulation_runtime_4397308533",
+              "decision_id": "decision_contract_2188a1e68a48",
+              "timestamp": "2026-07-07T12:55:18.123411+00:00",
               "validation_checks": {
-                "has_contract_id": "contract_fd21dd451d5b",
-                "has_trace_id": "comp_simulation_runtime_de6b34f42a",
+                "has_contract_id": "contract_2188a1e68a48",
+                "has_trace_id": "comp_simulation_runtime_4397308533",
                 "has_execution_plan": true,
                 "has_valid_module": "creator",
                 "has_constraints": true,
-                "has_contract_hash": "b9a028248e1b67c208528d4f0e4a57e090aeadcfbff79692973698330d69be4a"
+                "has_contract_hash": "1a6a844485045e36a008ea1282347f46fe01651271f6f26366dd64c6d489c2f1"
               }
             },
-            "timestamp": "2026-07-07T11:19:24.364376+00:00"
+            "timestamp": "2026-07-07T12:55:18.141426+00:00"
           },
           "execution_result": {
             "status": "success",
@@ -882,15 +930,15 @@
                   ]
                 },
                 "target_product": "creator",
-                "trace_id": "comp_simulation_runtime_de6b34f42a",
-                "workflow_id": "wf_81aadc98"
+                "trace_id": "comp_simulation_runtime_4397308533",
+                "workflow_id": "wf_e41379d8"
               }
             },
-            "trace_id": "comp_simulation_runtime_de6b34f42a",
-            "workflow_id": "wf_81aadc98"
+            "trace_id": "comp_simulation_runtime_4397308533",
+            "workflow_id": "wf_e41379d8"
           },
           "pipeline_status": "completed",
-          "deterministic_hash": "03e0923aa28a5249",
+          "deterministic_hash": "1dbb736aa705cd4b",
           "product_output": {
             "simulation_result": {
               "content": "Generated content for: unknown topic",
@@ -906,40 +954,44 @@
                   ]
                 },
                 "target_product": "creator",
-                "trace_id": "comp_simulation_runtime_de6b34f42a",
-                "workflow_id": "wf_81aadc98"
+                "trace_id": "comp_simulation_runtime_4397308533",
+                "workflow_id": "wf_e41379d8"
               }
             },
             "status": "success",
             "message": "Creative content generated with context"
           },
-          "trace_id": "comp_simulation_runtime_de6b34f42a",
-          "workflow_id": "wf_81aadc98"
+          "trace_id": "comp_simulation_runtime_4397308533",
+          "workflow_id": "wf_e41379d8"
         },
-        "timestamp": "2026-07-07T11:19:24.458239+00:00"
+        "timestamp": "2026-07-07T12:55:18.202561+00:00"
       },
       "artifact_chain": {
-        "trace_id": "comp_simulation_runtime_de6b34f42a",
-        "workflow_id": "wf_81aadc98",
-        "A1_instruction": "instruction_877c7bdb",
-        "A2_blueprint": "blueprint_5c65418f",
-        "A2b_contract": "contract_ee0fa679",
-        "A2c_authority": "authority_07b28a58",
-        "A2d_gate": "gate_37f9ade7",
-        "A3_execution": "execution_d220120f",
-        "A4_result": "result_6e70716d"
+        "trace_id": "comp_simulation_runtime_4397308533",
+        "workflow_id": "wf_e41379d8",
+        "A1_instruction": "instruction_6983d2c8",
+        "A2_blueprint": "blueprint_5f8fd8db",
+        "A2b_contract": "contract_39b559d5",
+        "A2c_authority": "authority_e9ee635f",
+        "A2d_gate": "gate_f150f418",
+        "A3_execution": "execution_562f265c",
+        "A4_result": "result_10562b07"
       },
       "chain_complete": true,
       "replay_status_code": 200,
       "replay_passed": true,
       "bucket_status_code": 200,
-      "bucket_artifact_count": 4,
+      "bucket_artifact_count": 7,
       "bucket_artifact_types": [
-        "instruction",
+        "authority",
         "blueprint",
+        "contract",
         "execution",
+        "gate",
+        "instruction",
         "result"
       ],
+      "bucket_has_all_7_types": true,
       "passed": true
     }
   ],

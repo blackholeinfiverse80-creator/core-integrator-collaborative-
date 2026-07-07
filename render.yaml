@@ -22,7 +22,7 @@ services:
     region: oregon
     root: .
     buildCommand: pip install -r requirements.txt && pip install -r creator-core/Core-Integrator-Sprint-1.1/requirements.txt
-    startCommand: uvicorn creator-core.Core-Integrator-Sprint-1.1.main:app --host 0.0.0.0 --port $PORT
+    startCommand: python creator-core/Core-Integrator-Sprint-1.1/main.py
     envVars:
       - key: PYTHONPATH
         value: ".:./src:./creator-core/Core-Integrator-Sprint-1.1"
@@ -55,19 +55,52 @@ services:
     startCommand: uvicorn bhiv_bucket:bucket_app --host 0.0.0.0 --port $PORT
 
   - type: web_service
+    name: cet
+    env: python
+    plan: starter
+    region: oregon
+    root: .
+    buildCommand: pip install -r requirements.txt
+    startCommand: python cet_service.py
+
+  - type: web_service
+    name: sarathi
+    env: python
+    plan: starter
+    region: oregon
+    root: .
+    buildCommand: pip install -r requirements.txt
+    startCommand: python sarathi_service.py
+
+  - type: web_service
+    name: gate
+    env: python
+    plan: starter
+    region: oregon
+    root: .
+    buildCommand: pip install -r requirements.txt
+    startCommand: python gate_service.py
+
+  - type: web_service
     name: integration-bridge
     env: python
     plan: starter
     region: oregon
     root: .
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn integration_bridge_v2:app --host 0.0.0.0 --port $PORT
+    startCommand: uvicorn integration_bridge:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PROMPT_RUNNER_URL
         value: "https://prompt-runner.onrender.com"
       - key: CREATOR_CORE_URL
-        value: "https://creator-core.onrender.com/creator-core/generate-blueprint"
+        value: "https://creator-core.onrender.com"
       - key: BHIV_CORE_URL
-        value: "https://bhiv-core.onrender.com/core"
+        value: "https://bhiv-core.onrender.com"
       - key: BUCKET_URL
         value: "https://bhiv-bucket.onrender.com"
+      - key: CET_URL
+        value: "https://cet.onrender.com"
+      - key: SARATHI_URL
+        value: "https://sarathi.onrender.com"
+      - key: GATE_URL
+        value: "https://gate.onrender.com"

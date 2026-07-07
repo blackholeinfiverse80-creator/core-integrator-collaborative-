@@ -21,11 +21,12 @@
 
 ## Telemetry
 
-- Integration Bridge → `bhiv_bucket/insightflow_events.jsonl`
+- Integration Bridge, CET, Sarathi, Gate, BHIV Core → `bhiv_bucket/insightflow_events.jsonl`
 - Creator Core → own telemetry writer
+- Query: `GET /bucket/dashboard`, `GET /bucket/insightflow`
 
 ## Known gaps
 
-- Bucket stores 4 artifact types; contract/authority/gate not separately persisted
-- BHIV rate limiter can block burst testing (default 60/min)
 - Remote/mixed deployment not validated in this sprint
+- No HTML observability UI
+- Creator Core telemetry not merged into dashboard query

@@ -13,6 +13,8 @@ from fastapi import FastAPI, HTTPException, Depends
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel
 from src.core.execution_gate import ExecutionGate
+from src.utils.insightflow import make_lineage_event
+from src.utils.telemetry_writer import emit_insightflow_event
 from src.agents.finance import FinanceAgent
 from src.agents.education import EducationAgent
 from src.agents.creator import CreatorAgent
@@ -69,6 +71,17 @@ def health():
 def evaluate_gate(req: EvaluateRequest):
     try:
         execution_result = gate.execute_if_authorized(req.contract, req.authority_decision, execute=req.execute)
+        trace_id = req.contract.get("trace_id", "unknown")
+        emit_insightflow_event(
+            make_lineage_event(
+                "gate.evaluated",
+                trace_id,
+                trace_id,
+                component="gate",
+                status="success" if execution_result.get("gate_status") in ("ALLOWED", "EXECUTED") else "rejected",
+                details={"gate_status": execution_result.get("gate_status"), "message": execution_result.get("message")},
+            )
+        )
         return execution_result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

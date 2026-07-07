@@ -16,6 +16,17 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 
+# All first-class artifact types in the live pipeline (A1 → A4 including authority stages)
+ARTIFACT_TYPES = [
+    "instruction",
+    "blueprint",
+    "contract",
+    "authority",
+    "gate",
+    "execution",
+    "result",
+]
+
 
 class BHIVBucket:
     """Artifact storage system for BHIV pipeline"""
@@ -24,11 +35,9 @@ class BHIVBucket:
         self.base_path = Path(base_path)
         self.base_path.mkdir(exist_ok=True)
         
-        # Create subdirectories for different artifact types
-        (self.base_path / "instructions").mkdir(exist_ok=True)
-        (self.base_path / "blueprints").mkdir(exist_ok=True) 
-        (self.base_path / "executions").mkdir(exist_ok=True)
-        (self.base_path / "results").mkdir(exist_ok=True)
+        # Create subdirectories for all artifact types
+        for artifact_type in ARTIFACT_TYPES:
+            (self.base_path / f"{artifact_type}s").mkdir(exist_ok=True)
         (self.base_path / "traces").mkdir(exist_ok=True)
     
     def store_artifact(self, artifact_id: str, artifact_type: str, data: Dict[str, Any], 
@@ -68,7 +77,7 @@ class BHIVBucket:
         """Retrieve artifact by ID (no transformation)"""
         
         # Search across all artifact type directories
-        for artifact_type in ["instruction", "blueprint", "execution", "result"]:
+        for artifact_type in ARTIFACT_TYPES:
             type_dir = self.base_path / f"{artifact_type}s"
             artifact_file = type_dir / f"{artifact_id}.json"
             
@@ -147,7 +156,7 @@ class BHIVBucket:
             "storage_size_mb": 0
         }
         
-        for artifact_type in ["instruction", "blueprint", "execution", "result"]:
+        for artifact_type in ARTIFACT_TYPES:
             type_dir = self.base_path / f"{artifact_type}s"
             count = len(list(type_dir.glob("*.json")))
             stats["by_type"][artifact_type] = count
@@ -161,6 +170,36 @@ class BHIVBucket:
         stats["storage_size_mb"] = round(total_size / (1024 * 1024), 2)
         
         return stats
+
+    def get_insightflow_events(self, limit: int = 100) -> List[Dict[str, Any]]:
+        """Read recent InsightFlow events from the shared telemetry log."""
+        events_path = self.base_path / "insightflow_events.jsonl"
+        if not events_path.exists():
+            return []
+        lines = events_path.read_text(encoding="utf-8").strip().splitlines()
+        events = []
+        for line in lines[-limit:]:
+            try:
+                events.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+        return events
+
+    def get_dashboard_summary(self) -> Dict[str, Any]:
+        """Minimal observability snapshot: bucket stats + recent traces + telemetry counts."""
+        stats = self.get_stats()
+        traces = self.list_traces(limit=10)
+        events = self.get_insightflow_events(limit=500)
+        by_component: Dict[str, int] = {}
+        for event in events:
+            component = event.get("component", "unknown")
+            by_component[component] = by_component.get(component, 0) + 1
+        return {
+            "bucket": stats,
+            "recent_traces": traces,
+            "insightflow_event_count": len(events),
+            "insightflow_by_component": by_component,
+        }
 
 
 # Bucket API
@@ -230,6 +269,16 @@ async def list_traces(limit: int = 100):
 async def get_bucket_stats():
     """Get bucket statistics"""
     return bucket.get_stats()
+
+@bucket_app.get("/bucket/insightflow")
+async def get_insightflow_events(limit: int = 100):
+    """Query recent InsightFlow telemetry events"""
+    return {"events": bucket.get_insightflow_events(limit)}
+
+@bucket_app.get("/bucket/dashboard")
+async def get_dashboard():
+    """Minimal observability dashboard data"""
+    return bucket.get_dashboard_summary()
 
 if __name__ == "__main__":
     import uvicorn

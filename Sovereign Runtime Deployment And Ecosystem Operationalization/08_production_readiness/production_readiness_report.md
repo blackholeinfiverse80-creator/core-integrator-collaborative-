@@ -1,21 +1,22 @@
 # Production Readiness Report
 
 **Date:** 2026-07-07  
-**Assessment:** development-ready with live local validation; not production-certified
+**Assessment:** development-ready with expanded live local validation; not production-certified
 
 ## What is proven (live evidence)
 
 | Criterion | Status | Evidence |
 |---|---|---|
-| CET/Sarathi/Gate in live pipeline | PASS | `comp_ttg_2f81022aee` |
+| CET/Sarathi/Gate in live pipeline | PASS | `comp_ttg_434a5d3954` |
+| 7-type Bucket lineage (incl. contract/authority/gate) | PASS | `/bucket/trace/comp_ttg_434a5d3954` → 7 artifacts |
 | Prompt Runner real processing | PASS | all 4 product traces |
-| TTG onboarding | PASS | `comp_ttg_2f81022aee` |
-| TTV onboarding | PASS | `comp_ttv_49a28b3bbd` |
-| Gurukul onboarding | PASS | `comp_gurukul_a8535de499` |
-| Simulation Runtime onboarding | PASS | `comp_simulation_runtime_de6b34f42a` |
-| Replay | PASS | all 4 traces replay 200 |
-| Local 8-service deployment | PASS | `04_validation/local_deployment_results.md` |
-| Comprehensive test suite | PASS | `python run_comprehensive_live_tests.py` → 4/4 |
+| TTG/TTV/Gurukul/Simulation Runtime onboarding | PASS | traces in manifest |
+| Replay | PASS | all 4 product traces replay 200 |
+| Determinism (same prompt, stable hash) | PASS | `det_48493b5f64`, `det_cf1fd1c3f0` |
+| Recovery + replay after BHIV restart | PASS | `rec_3b2c0c81b9` |
+| Local 8-service deployment | PASS | `comprehensive_live_test_results.json` |
+| InsightFlow emission (cet/sarathi/gate/bhiv/bridge) | PASS | `/bucket/dashboard` → 90 events |
+| Observability dashboard (JSON endpoint) | PASS | `GET /bucket/dashboard` → 200 |
 
 ## What is not proven
 
@@ -24,14 +25,14 @@
 | Remote deployment | NOT RUN |
 | Mixed deployment | NOT RUN |
 | Distributed replay (second node) | NOT RUN |
-| Service kill + restart recovery | PARTIAL (BHIV restart demonstrated) |
-| Full InsightFlow across all services | PARTIAL |
-| Observability dashboard | NOT BUILT |
+| SIGKILL mid-BHIV-HTTP-call | NOT RUN (BHIV-down-at-execution demonstrated instead) |
+| HTML/Grafana dashboard | NOT BUILT |
+| Fifth product onboarded | TEMPLATE ONLY (`13_additional_onboarding/`) |
 
 ## Supersedes
 
-The 2026-06-20 certification folder claimed "APPROVED FOR PRODUCTION RELEASE" based on in-process simulation. This report supersedes that claim. See `05_evidence_packets/trace_manifest.json` for live trace IDs.
+The 2026-06-20 certification folder claimed "APPROVED FOR PRODUCTION RELEASE" based on in-process simulation. This report supersedes that claim.
 
 ## Recommendation
 
-Safe for continued local development and integration testing. Before production release: deploy remotely, demonstrate distributed replay, and complete observability dashboard.
+Safe for continued local development and integration testing. Before production release: deploy remotely (Render config updated), demonstrate mixed topology, and add production observability UI.

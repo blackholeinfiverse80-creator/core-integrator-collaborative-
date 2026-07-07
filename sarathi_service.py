@@ -13,6 +13,8 @@ from fastapi import FastAPI, HTTPException, Depends
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel
 from src.core.authority_engine import SarathiAuthorityEngine
+from src.utils.insightflow import make_lineage_event
+from src.utils.telemetry_writer import emit_insightflow_event
 
 app = FastAPI(
     title="Sarathi Authority Service",
@@ -44,7 +46,19 @@ def health():
 def validate_contract(req: ValidateRequest):
     try:
         decision = engine.validate_contract(req.contract)
-        return engine._decision_to_dict(decision)
+        payload = engine._decision_to_dict(decision)
+        trace_id = payload.get("trace_id") or req.contract.get("trace_id", "unknown")
+        emit_insightflow_event(
+            make_lineage_event(
+                "authority.validated",
+                trace_id,
+                trace_id,
+                component="sarathi",
+                status="success" if payload.get("allowed") else "rejected",
+                details={"reason": payload.get("reason"), "decision_id": payload.get("decision_id")},
+            )
+        )
+        return payload
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
