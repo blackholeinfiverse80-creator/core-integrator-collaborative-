@@ -1,0 +1,32 @@
+{
+  "artifact_id": "execution_15e16a7f",
+  "artifact_type": "execution",
+  "trace_id": "trace_62c7f03ec732",
+  "timestamp": "2026-05-29T12:01:05.141134+00:00",
+  "data": {
+    "status": "success",
+    "message": "Creative content generated with context",
+    "result": {
+      "content": "Generated content for: unknown topic",
+      "related_context": [],
+      "enhanced_data": {
+        "blueprint": {
+          "blueprint_type": "content_blueprint",
+          "product_target": "creator",
+          "content_type": "step_by_step_guide",
+          "title": "Ai Assistant Tool",
+          "outline": [
+            "product_research",
+            "description_drafting",
+            "content_optimization"
+          ]
+        },
+        "target_product": "creator"
+      }
+    }
+  },
+  "metadata": {
+    "size_bytes": 441,
+    "schema_version": "1.0.0"
+  }
+}

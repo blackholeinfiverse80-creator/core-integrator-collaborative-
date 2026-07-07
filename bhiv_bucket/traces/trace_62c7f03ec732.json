@@ -1,0 +1,17 @@
+{
+  "trace_id": "trace_62c7f03ec732",
+  "created_at": "2026-05-29T12:01:05.053483+00:00",
+  "artifact_ids": [
+    "instruction_e2421518",
+    "blueprint_deda3253",
+    "execution_15e16a7f",
+    "result_71570565"
+  ],
+  "artifact_types": {
+    "instruction": "instruction_e2421518",
+    "blueprint": "blueprint_deda3253",
+    "execution": "execution_15e16a7f",
+    "result": "result_71570565"
+  },
+  "updated_at": "2026-05-29T12:01:05.170653+00:00"
+}

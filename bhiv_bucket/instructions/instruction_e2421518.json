@@ -1,0 +1,23 @@
+{
+  "artifact_id": "instruction_e2421518",
+  "artifact_type": "instruction",
+  "trace_id": "trace_62c7f03ec732",
+  "timestamp": "2026-05-29T12:01:05.052637+00:00",
+  "data": {
+    "prompt": "Write a short product description for an AI assistant tool.",
+    "module": "creator",
+    "intent": "product_description",
+    "topic": "AI_assistant_tool",
+    "tasks": [
+      "product_research",
+      "description_drafting",
+      "content_optimization"
+    ],
+    "output_format": "step_by_step_guide",
+    "product_context": "creator_core"
+  },
+  "metadata": {
+    "size_bytes": 310,
+    "schema_version": "1.0.0"
+  }
+}
