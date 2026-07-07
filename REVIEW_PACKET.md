@@ -1,27 +1,52 @@
 # REVIEW_PACKET
 
-This packet supersedes the 2026-06-20 certification production-readiness claim.
+This packet supersedes the 2026-06-20 certification production-readiness claim and prior review drafts in `docs/review/` and `review_packets/`.
 
 ## Why superseded
 
-- The prior packet relied on `full_tantra_flow_test.py` simulation evidence for CET/Sarathi/Gate and replay assertions.
-- Live runtime verification in this sprint showed deployment/auth/service-lifecycle issues that prevent claiming production readiness.
-- New evidence and discrepancies are documented in `Sovereign Runtime Deployment And Ecosystem Operationalization/04_validation/local_deployment_results.md`.
+The 2026-06-20 folder used `full_tantra_flow_test.py` (in-process simulation) as proof of live multi-service operation. This packet is backed by real HTTP traces against running services.
 
-## Implemented in this sprint
+## Entry point
 
-- Integrated CET/Sarathi/Gate calls into `integration_bridge.py`.
-- Added explicit no-double-execution policy: Gate authorizes, BHIV Core executes.
-- Replaced prompt runner stub with FastAPI implementation and tests.
-- Added Gurukul and Simulation Runtime adapters and wired adapter hooks in bridge.
-- Added baseline evidence artifacts and output tree for operationalization deliverables.
+```bash
+python start_all.py
+curl -X POST http://127.0.0.1:8004/pipeline/execute \
+  -H "X-API-Key: prod_shakti_tantra_secret_key_2026" \
+  -H "Content-Type: application/json" \
+  -d '{"prompt":"Design a cooperative dungeon board game","product_context":"ttg"}'
+```
 
-## Current blockers
+## Core flow (live)
 
-- `start_all.py` had Windows unicode console failures (partially fixed to ASCII).
-- Service orchestrator monitoring reports all child services dead shortly after startup in this environment.
-- Auth middleware and environment propagation still block stable end-to-end live trace capture through `/pipeline/execute`.
+`integration_bridge.py` → Prompt Runner → Creator Core → **CET** → **Sarathi** → **Gate** → BHIV Core → Bucket
 
-## Current readiness statement
+Execution policy: Gate authorizes; BHIV Core executes (no double-execution).
 
-The system is **not yet production-ready**. Wiring and prompt-runner implementation progress is in place, but full live validation matrix and evidence packet generation are incomplete pending runtime stability fixes.
+## Live example
+
+- **Trace ID:** `live_test_d61c664e3559`
+- **Artifact chain:** A1 → A2 → A2b (contract) → A2c (authority) → A2d (gate) → A3 → A4
+- **Replay:** `GET /pipeline/replay/live_test_d61c664e3559` → 200
+
+## Product validation
+
+| Product | Trace | Status |
+|---|---|---|
+| TTG | `live_test_d61c664e3559` | PASS |
+| TTV | `comp_ttv_bd10684a9d` | PASS |
+| Simulation Runtime | `comp_simulation_runtime_40b176773f` | PASS |
+| Gurukul | `comp_gurukul_8934d450a8` | FAIL (429) |
+
+## Honest failure cases
+
+- BHIV Core rate limit (429) blocks burst pipeline runs
+- Bucket stores 4 artifact types; intermediate authority artifacts not separately persisted
+- Remote/mixed deployment not validated in this sprint
+
+## Readiness statement
+
+**Development-ready** with live local validation. **Not production-certified.** See `Sovereign Runtime Deployment And Ecosystem Operationalization/08_production_readiness/production_readiness_report.md`.
+
+## Evidence index
+
+`Sovereign Runtime Deployment And Ecosystem Operationalization/05_evidence_packets/trace_manifest.json`

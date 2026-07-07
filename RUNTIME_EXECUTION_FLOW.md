@@ -42,15 +42,14 @@ Every stage is defined in sequence from human prompt to replay validation.
 
 **Role**: Convert the prompt into a structured instruction payload.
 
-**Source**: `prompt-runner01/run_server.py`
+**Source**: `prompt-runner01/run_server.py` (FastAPI)
 
 **Input**
 - HTTP POST to `/generate`
-- payload: `{"prompt": "..."}`
+- payload: `{"prompt": "...", "origin": "creator"}`
 
 **Output**
-- structured instruction JSON
-- current stub returns an echo payload and health status
+- structured instruction JSON with extracted intent, module, tasks, and product_context
 
 **Schema**
 ```json
@@ -174,7 +173,7 @@ Every stage is defined in sequence from human prompt to replay validation.
 
 **Role**: Generate a contract that makes blueprint execution deterministic and replay-safe.
 
-**Source**: represented in `full_tantra_flow_test.py`
+**Source**: live service `cet_service.py`, invoked by `integration_bridge.py` via `POST /contract/compile`
 
 **Input**
 - blueprint artifact payload
@@ -204,10 +203,7 @@ Every stage is defined in sequence from human prompt to replay validation.
 
 **Role**: Authority validation for contract approval.
 
-**Source**: represented in `full_tantra_flow_test.py`
-
-**Input**
-- CET contract payload
+**Source**: live service `sarathi_service.py`, invoked by `integration_bridge.py` via `POST /authority/validate`
 
 **Output**
 - authority decision object
@@ -228,10 +224,7 @@ Every stage is defined in sequence from human prompt to replay validation.
 
 **Role**: Convert authority decisions into execution permission.
 
-**Source**: represented in `full_tantra_flow_test.py`
-
-**Input**
-- contract and authority decision
+**Source**: live service `gate_service.py`, invoked by `integration_bridge.py` via `POST /gate/evaluate`
 
 **Output**
 - gate result that determines execution start

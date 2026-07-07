@@ -1,7 +1,11 @@
 # Simulation Runtime Onboarding
 
-- Trace ID: `e8312062eef44470a7f764937887ef47`
-- New adapters added under `src/adapters/simulation_runtime_*`.
-- Successful live execution through full authority path validated.
-- Artifact chain persisted in bucket and replay verified (`/pipeline/replay/e8312062eef44470a7f764937887ef47`).
-- Telemetry persisted via bridge event writer.
+**Trace ID:** `comp_simulation_runtime_40b176773f`  
+**Status:** PASS (live)
+
+1. **Prompt Runner** — `tasks: [run_simulation]`, `product_context: simulation_runtime`
+2. **Creator Core** — blueprint generated
+3. **Core execution** — full CET → Sarathi → Gate → BHIV chain
+4. **Bucket** — trace stored, replay 200
+5. **InsightFlow** — bridge telemetry emitted
+6. **Replay** — PASS

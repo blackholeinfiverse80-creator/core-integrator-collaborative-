@@ -47,9 +47,12 @@ def main():
     services = [
         ("Prompt Runner", "http://127.0.0.1:8003/health"),
         ("Creator Core", "http://127.0.0.1:8000/"),
-        ("BHIV Core", "http://127.0.0.1:8001/"),
+        ("BHIV Core", "http://127.0.0.1:8001/system/health"),
         ("Integration Bridge", "http://127.0.0.1:8004/pipeline/health"),
         ("BHIV Bucket", "http://127.0.0.1:8005/bucket/stats"),
+        ("CET Service", "http://127.0.0.1:8006/health"),
+        ("Sarathi Service", "http://127.0.0.1:8007/health"),
+        ("Gate Service", "http://127.0.0.1:8008/health"),
     ]
     
     results = []

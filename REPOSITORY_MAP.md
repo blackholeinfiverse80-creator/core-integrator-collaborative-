@@ -17,7 +17,7 @@ This repository is organized to support a multi-service integration pipeline. Ke
 - `full_tantra_flow_test.py` — full TANTRA flow validation harness
 - `config/` — centralized configuration definitions
 - `creator-core/` — Creator Core service and engine
-- `prompt-runner01/` — Prompt Runner stub server
+- `prompt-runner01/` — Prompt Runner FastAPI service
 - `audit_packets/` — audit, review, replay, and architecture analysis artifacts
 - `data/` — runtime artifacts and storage
 - `db/` — database and telemetry storage
@@ -30,7 +30,7 @@ This repository is organized to support a multi-service integration pipeline. Ke
 - `python deploy_and_test.py` — deploys services and verifies readiness
 
 ### Single service
-- `python prompt-runner01/run_server.py` — runs the Prompt Runner stub
+- `python prompt-runner01/run_server.py` — runs the Prompt Runner FastAPI service
 - `python creator-core/Core-Integrator-Sprint-1.1/main.py` — runs Creator Core
 - `python main.py` — runs BHIV Core
 - `python integration_bridge.py` — runs Integration Bridge
@@ -38,6 +38,8 @@ This repository is organized to support a multi-service integration pipeline. Ke
 
 ### Tests and validation
 - `python test_services.py` — health checks for each service
+- `python run_comprehensive_live_tests.py` — live 8-service + 4-product validation
+- `python test_production_runtime.py` — cold-start + auth + pipeline validation
 - `python full_tantra_flow_test.py` — full TANTRA validation and replay proof generation
 - `python -m pytest creator-core/Core-Integrator-Sprint-1.1/tests` — Creator Core unit tests
 
@@ -61,7 +63,7 @@ This repository is organized to support a multi-service integration pipeline. Ke
 - `EXTERNAL_SERVICES.md` — Creator Core external service instructions
 
 ### `prompt-runner01/`
-- `run_server.py` — HTTP stub for prompt generation
+- `run_server.py` — FastAPI prompt-to-instruction service
 
 ### `audit_packets/`
 - `architecture/` — architecture audit, component boundaries, and ecosystem analysis
@@ -77,7 +79,10 @@ This repository is organized to support a multi-service integration pipeline. Ke
 - **Prompt Runner** — `prompt-runner01/run_server.py`
 - **Creator Core** — `creator-core/Core-Integrator-Sprint-1.1/main.py`
 - **BHIV Core** — `main.py`
-- **Integration Bridge** — `integration_bridge.py`
+- **Integration Bridge** — `integration_bridge.py` (orchestrates Prompt Runner → Creator Core → CET → Sarathi → Gate → BHIV Core → Bucket)
+- **CET Service** — `cet_service.py`
+- **Sarathi Service** — `sarathi_service.py`
+- **Gate Service** — `gate_service.py`
 - **BHIV Bucket** — `bhiv_bucket.py`
 
 ## Configuration files

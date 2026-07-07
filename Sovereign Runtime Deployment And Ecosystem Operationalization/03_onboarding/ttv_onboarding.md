@@ -1,9 +1,11 @@
 # TTV Onboarding
 
-- Trace ID: `41ea7d8193c14d308b45e2fe90a5acc0`
-- Prompt Runner participation: module extraction returned `video`.
-- Creator Core participation: A2 blueprint stored with trace linkage.
-- Core execution participation: A2b contract, A2c authority, A2d gate, A3 execution all persisted.
-- Bucket persistence: artifacts retrievable through replay endpoint.
-- InsightFlow telemetry: bridge lineage emission persisted to jsonl store.
-- Replay capability: `/pipeline/replay/41ea7d8193c14d308b45e2fe90a5acc0` succeeded.
+**Trace ID:** `comp_ttv_bd10684a9d`  
+**Status:** PASS (live)
+
+1. **Prompt Runner** — `module: video`, `tasks: [generate_video_script]`
+2. **Creator Core** — blueprint title "Photosynthesis For Students"
+3. **Core execution** — full A1→A4 chain with CET contract hash
+4. **Bucket** — 4 artifacts, trace retrievable
+5. **InsightFlow** — bridge `instruction.received` events
+6. **Replay** — 200 OK

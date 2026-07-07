@@ -1,5 +1,25 @@
 # Replay After Recovery Results
 
-- Command: GET `/pipeline/replay/<trace_id>` using API key after BHIV restart.
-- Verified traces: `5363db20b91848a8b9e920e1dfd3d82c`, `41ea7d8193c14d308b45e2fe90a5acc0`, `b42bc62531bb405b808be4e1fd5f505e`, `e8312062eef44470a7f764937887ef47`.
-- Outcome: all replay calls returned HTTP 200 and artifact chains from bucket.
+**Status:** PASS for completed traces  
+**Generated:** 2026-07-07
+
+## Test
+
+Replayed traces after live pipeline runs (services still running):
+
+| Trace ID | Replay status | Bucket status |
+|---|---|---|
+| `live_test_d61c664e3559` | 200 | 200 |
+| `comp_ttv_bd10684a9d` | 200 | 200 |
+| `comp_simulation_runtime_40b176773f` | 200 | 200 |
+
+Command:
+```bash
+curl -H "X-API-Key: prod_shakti_tantra_secret_key_2026" \
+  http://127.0.0.1:8004/pipeline/replay/live_test_d61c664e3559
+```
+
+## Pass/fail
+
+- **PASS:** Replay reconstructs artifact chain from bucket for completed traces
+- **NOT RUN:** Replay after service kill + restart

@@ -1,0 +1,553 @@
+{
+  "generated_at": "2026-07-07T10:19:50.143701+00:00",
+  "classification": "live_service_evidence",
+  "health_checks": [
+    {
+      "service": "prompt_runner",
+      "url": "http://127.0.0.1:8003/health",
+      "status_code": 200,
+      "healthy": true,
+      "latency_ms": 9.22,
+      "body": {
+        "status": "ok",
+        "service": "prompt_runner"
+      }
+    },
+    {
+      "service": "creator_core",
+      "url": "http://127.0.0.1:8000/",
+      "status_code": 200,
+      "healthy": true,
+      "latency_ms": 2.25,
+      "body": {
+        "message": "Unified Backend Bridge API",
+        "version": "1.0.0",
+        "docs": "/docs",
+        "creator_core_endpoint": "/creator-core/generate-blueprint"
+      }
+    },
+    {
+      "service": "bhiv_core",
+      "url": "http://127.0.0.1:8001/system/health",
+      "status_code": 429,
+      "healthy": false,
+      "latency_ms": 2.21,
+      "body": {
+        "error": "Rate limit exceeded"
+      }
+    },
+    {
+      "service": "integration_bridge",
+      "url": "http://127.0.0.1:8004/pipeline/health",
+      "status_code": 200,
+      "healthy": true,
+      "latency_ms": 32.01,
+      "body": null
+    },
+    {
+      "service": "bucket",
+      "url": "http://127.0.0.1:8005/bucket/stats",
+      "status_code": 200,
+      "healthy": true,
+      "latency_ms": 3.91,
+      "body": {
+        "total_artifacts": 46,
+        "by_type": {
+          "instruction": 16,
+          "blueprint": 16,
+          "execution": 7,
+          "result": 7
+        },
+        "total_traces": 16,
+        "storage_size_mb": 0.07
+      }
+    },
+    {
+      "service": "cet",
+      "url": "http://127.0.0.1:8006/health",
+      "status_code": 200,
+      "healthy": true,
+      "latency_ms": 4.8,
+      "body": {
+        "status": "ok",
+        "service": "cet"
+      }
+    },
+    {
+      "service": "sarathi",
+      "url": "http://127.0.0.1:8007/health",
+      "status_code": 200,
+      "healthy": true,
+      "latency_ms": 3.77,
+      "body": {
+        "status": "ok",
+        "service": "sarathi"
+      }
+    },
+    {
+      "service": "gate",
+      "url": "http://127.0.0.1:8008/health",
+      "status_code": 200,
+      "healthy": true,
+      "latency_ms": 3.04,
+      "body": {
+        "status": "ok",
+        "service": "gate"
+      }
+    }
+  ],
+  "product_runs": [
+    {
+      "product": "ttg",
+      "trace_id": "comp_ttg_370a8be083",
+      "workflow_id": "wf_665d18e2",
+      "timestamp": "2026-07-07T10:19:52.206407+00:00",
+      "pipeline_status_code": 500,
+      "pipeline_error": "{\"detail\":\"429 Client Error: Too Many Requests for url: http://127.0.0.1:8001/core\"}",
+      "passed": false
+    },
+    {
+      "product": "ttv",
+      "trace_id": "comp_ttv_bd10684a9d",
+      "workflow_id": "wf_30816e9a",
+      "timestamp": "2026-07-07T10:19:54.428672+00:00",
+      "pipeline_status_code": 200,
+      "pipeline_body": {
+        "status": "success",
+        "trace_id": "comp_ttv_bd10684a9d",
+        "workflow_id": "wf_30816e9a",
+        "artifact_chain": {
+          "trace_id": "comp_ttv_bd10684a9d",
+          "workflow_id": "wf_30816e9a",
+          "A1_instruction": "instruction_4b7900f1",
+          "A2_blueprint": "blueprint_09a068f8",
+          "A2b_contract": "contract_2c851142",
+          "A2c_authority": "authority_c61f1625",
+          "A2d_gate": "gate_2d80391d",
+          "A3_execution": "execution_68607517",
+          "A4_result": "result_4975612d"
+        },
+        "pipeline_result": {
+          "original_prompt": "Create a short educational video script about photosynthesis for students",
+          "generated_instruction": {
+            "prompt": "Create a short educational video script about photosynthesis for students",
+            "module": "video",
+            "intent": "generate",
+            "topic": "photosynthesis for students",
+            "tasks": [
+              "generate_video_script"
+            ],
+            "output_format": "json",
+            "product_context": "ttv",
+            "trace_id": "comp_ttv_bd10684a9d",
+            "workflow_id": "wf_30816e9a",
+            "instruction_id": "comp_ttv_bd10684a9d"
+          },
+          "blueprint_envelope": {
+            "blueprint": {
+              "instruction_id": "890c9253-0a8d-47e4-8e17-0d8edd687edc",
+              "origin": "creator_core",
+              "intent_type": "generate",
+              "target_product": "creator",
+              "payload": {
+                "blueprint_type": "content_blueprint",
+                "product_target": "creator",
+                "content_type": "json",
+                "title": "Photosynthesis For Students",
+                "outline": [
+                  "generate_video_script"
+                ]
+              },
+              "schema_version": "1.0",
+              "timestamp": "2026-07-07T10:19:54.454112+00:00"
+            },
+            "trace_id": "comp_ttv_bd10684a9d",
+            "workflow_id": "wf_30816e9a"
+          },
+          "contract": {
+            "contract_id": "contract_6270a5f9aecd",
+            "instruction_id": "comp_ttv_bd10684a9d",
+            "trace_id": "comp_ttv_bd10684a9d",
+            "execution_plan": {
+              "target_module": "creator",
+              "execution_intent": "generate",
+              "execution_data": {
+                "blueprint_type": "content_blueprint",
+                "product_target": "creator",
+                "content_type": "json",
+                "title": "Photosynthesis For Students",
+                "outline": [
+                  "generate_video_script"
+                ]
+              }
+            },
+            "constraints": {
+              "schema_version": "1.0.0",
+              "origin": "creator_core",
+              "intent_type": null,
+              "deterministic": true,
+              "replay_safe": true
+            },
+            "contract_hash": "d0a93b8fe1ee80307ba82af43cd5e88c82f2e20bd4d410a95f21fbb1b7242fb2",
+            "timestamp": "2026-07-07T10:19:54.486342+00:00",
+            "schema_version": "1.0.0"
+          },
+          "authority_decision": {
+            "allowed": true,
+            "reason": "valid_contract",
+            "contract_id": "contract_6270a5f9aecd",
+            "trace_id": "comp_ttv_bd10684a9d",
+            "decision_id": "decision_contract_6270a5f9aecd",
+            "timestamp": "2026-07-07T10:19:54.498701+00:00",
+            "validation_checks": {
+              "has_contract_id": "contract_6270a5f9aecd",
+              "has_trace_id": "comp_ttv_bd10684a9d",
+              "has_execution_plan": true,
+              "has_valid_module": "creator",
+              "has_constraints": true,
+              "has_contract_hash": "d0a93b8fe1ee80307ba82af43cd5e88c82f2e20bd4d410a95f21fbb1b7242fb2"
+            }
+          },
+          "gate_decision": {
+            "status": "allowed",
+            "message": "Execution approved by gate",
+            "result": {},
+            "contract_id": "contract_6270a5f9aecd",
+            "trace_id": "comp_ttv_bd10684a9d",
+            "gate_status": "ALLOWED",
+            "authority_decision": {
+              "allowed": true,
+              "reason": "valid_contract",
+              "contract_id": "contract_6270a5f9aecd",
+              "trace_id": "comp_ttv_bd10684a9d",
+              "decision_id": "decision_contract_6270a5f9aecd",
+              "timestamp": "2026-07-07T10:19:54.498701+00:00",
+              "validation_checks": {
+                "has_contract_id": "contract_6270a5f9aecd",
+                "has_trace_id": "comp_ttv_bd10684a9d",
+                "has_execution_plan": true,
+                "has_valid_module": "creator",
+                "has_constraints": true,
+                "has_contract_hash": "d0a93b8fe1ee80307ba82af43cd5e88c82f2e20bd4d410a95f21fbb1b7242fb2"
+              }
+            },
+            "timestamp": "2026-07-07T10:19:54.510154+00:00"
+          },
+          "execution_result": {
+            "status": "success",
+            "message": "Creative content generated with context",
+            "result": {
+              "content": "Generated content for: unknown topic",
+              "related_context": [],
+              "enhanced_data": {
+                "blueprint": {
+                  "blueprint_type": "content_blueprint",
+                  "product_target": "creator",
+                  "content_type": "json",
+                  "title": "Photosynthesis For Students",
+                  "outline": [
+                    "generate_video_script"
+                  ]
+                },
+                "target_product": "creator",
+                "trace_id": "comp_ttv_bd10684a9d",
+                "workflow_id": "wf_30816e9a"
+              }
+            },
+            "trace_id": "comp_ttv_bd10684a9d",
+            "workflow_id": "wf_30816e9a"
+          },
+          "pipeline_status": "completed",
+          "deterministic_hash": "7508970efe7f0b54",
+          "product_output": {
+            "video_script": {
+              "title": "Untitled Video",
+              "narration": "",
+              "scenes": [],
+              "dialogue": [],
+              "captions": []
+            },
+            "audio_requirements": {
+              "voice_type": "neutral",
+              "background_music": "none",
+              "sound_effects": [],
+              "audio_style": "standard"
+            },
+            "visual_elements": {
+              "style": "standard",
+              "animations": [],
+              "transitions": [],
+              "graphics": [],
+              "text_overlays": []
+            },
+            "timeline": [
+              {
+                "timestamp": "0:00",
+                "event": "intro"
+              },
+              {
+                "timestamp": "0:05",
+                "event": "main_content"
+              },
+              {
+                "timestamp": "0:55",
+                "event": "outro"
+              }
+            ],
+            "metadata": {
+              "execution_id": null,
+              "trace_id": null,
+              "timestamp": null,
+              "status": "success"
+            }
+          },
+          "trace_id": "comp_ttv_bd10684a9d",
+          "workflow_id": "wf_30816e9a"
+        },
+        "timestamp": "2026-07-07T10:19:54.693395+00:00"
+      },
+      "artifact_chain": {
+        "trace_id": "comp_ttv_bd10684a9d",
+        "workflow_id": "wf_30816e9a",
+        "A1_instruction": "instruction_4b7900f1",
+        "A2_blueprint": "blueprint_09a068f8",
+        "A2b_contract": "contract_2c851142",
+        "A2c_authority": "authority_c61f1625",
+        "A2d_gate": "gate_2d80391d",
+        "A3_execution": "execution_68607517",
+        "A4_result": "result_4975612d"
+      },
+      "chain_complete": true,
+      "replay_status_code": 200,
+      "replay_passed": true,
+      "bucket_status_code": 200,
+      "bucket_artifact_count": 4,
+      "bucket_artifact_types": [
+        "instruction",
+        "blueprint",
+        "execution",
+        "result"
+      ],
+      "passed": true
+    },
+    {
+      "product": "gurukul",
+      "trace_id": "comp_gurukul_ad5e1aab0c",
+      "workflow_id": "wf_f79ea772",
+      "timestamp": "2026-07-07T10:19:57.351299+00:00",
+      "pipeline_status_code": 500,
+      "pipeline_error": "{\"detail\":\"429 Client Error: Too Many Requests for url: http://127.0.0.1:8001/core\"}",
+      "passed": false
+    },
+    {
+      "product": "simulation_runtime",
+      "trace_id": "comp_simulation_runtime_40b176773f",
+      "workflow_id": "wf_f722cd60",
+      "timestamp": "2026-07-07T10:19:59.458508+00:00",
+      "pipeline_status_code": 200,
+      "pipeline_body": {
+        "status": "success",
+        "trace_id": "comp_simulation_runtime_40b176773f",
+        "workflow_id": "wf_f722cd60",
+        "artifact_chain": {
+          "trace_id": "comp_simulation_runtime_40b176773f",
+          "workflow_id": "wf_f722cd60",
+          "A1_instruction": "instruction_33d7f71a",
+          "A2_blueprint": "blueprint_eae8df26",
+          "A2b_contract": "contract_4af5c743",
+          "A2c_authority": "authority_a6f14f48",
+          "A2d_gate": "gate_7c11166c",
+          "A3_execution": "execution_6fd3d449",
+          "A4_result": "result_c5f7b1d1"
+        },
+        "pipeline_result": {
+          "original_prompt": "Simulate a supply chain disruption scenario with recovery options",
+          "generated_instruction": {
+            "prompt": "Simulate a supply chain disruption scenario with recovery options",
+            "module": "creator",
+            "intent": "generate",
+            "topic": "general",
+            "tasks": [
+              "run_simulation"
+            ],
+            "output_format": "json",
+            "product_context": "simulation_runtime",
+            "trace_id": "comp_simulation_runtime_40b176773f",
+            "workflow_id": "wf_f722cd60",
+            "instruction_id": "comp_simulation_runtime_40b176773f"
+          },
+          "blueprint_envelope": {
+            "blueprint": {
+              "instruction_id": "d5978fc0-bf44-4b49-b40d-81b1623cac8a",
+              "origin": "creator_core",
+              "intent_type": "generate",
+              "target_product": "creator",
+              "payload": {
+                "blueprint_type": "content_blueprint",
+                "product_target": "creator",
+                "content_type": "json",
+                "title": "General",
+                "outline": [
+                  "run_simulation"
+                ]
+              },
+              "schema_version": "1.0",
+              "timestamp": "2026-07-07T10:19:59.480634+00:00"
+            },
+            "trace_id": "comp_simulation_runtime_40b176773f",
+            "workflow_id": "wf_f722cd60"
+          },
+          "contract": {
+            "contract_id": "contract_c65a9c925f71",
+            "instruction_id": "comp_simulation_runtime_40b176773f",
+            "trace_id": "comp_simulation_runtime_40b176773f",
+            "execution_plan": {
+              "target_module": "creator",
+              "execution_intent": "generate",
+              "execution_data": {
+                "blueprint_type": "content_blueprint",
+                "product_target": "creator",
+                "content_type": "json",
+                "title": "General",
+                "outline": [
+                  "run_simulation"
+                ]
+              }
+            },
+            "constraints": {
+              "schema_version": "1.0.0",
+              "origin": "creator_core",
+              "intent_type": null,
+              "deterministic": true,
+              "replay_safe": true
+            },
+            "contract_hash": "f2bac0501ae149bfa1a78b2e814acd2984765130fed072cee106f96ed089aee4",
+            "timestamp": "2026-07-07T10:19:59.519637+00:00",
+            "schema_version": "1.0.0"
+          },
+          "authority_decision": {
+            "allowed": true,
+            "reason": "valid_contract",
+            "contract_id": "contract_c65a9c925f71",
+            "trace_id": "comp_simulation_runtime_40b176773f",
+            "decision_id": "decision_contract_c65a9c925f71",
+            "timestamp": "2026-07-07T10:19:59.528228+00:00",
+            "validation_checks": {
+              "has_contract_id": "contract_c65a9c925f71",
+              "has_trace_id": "comp_simulation_runtime_40b176773f",
+              "has_execution_plan": true,
+              "has_valid_module": "creator",
+              "has_constraints": true,
+              "has_contract_hash": "f2bac0501ae149bfa1a78b2e814acd2984765130fed072cee106f96ed089aee4"
+            }
+          },
+          "gate_decision": {
+            "status": "allowed",
+            "message": "Execution approved by gate",
+            "result": {},
+            "contract_id": "contract_c65a9c925f71",
+            "trace_id": "comp_simulation_runtime_40b176773f",
+            "gate_status": "ALLOWED",
+            "authority_decision": {
+              "allowed": true,
+              "reason": "valid_contract",
+              "contract_id": "contract_c65a9c925f71",
+              "trace_id": "comp_simulation_runtime_40b176773f",
+              "decision_id": "decision_contract_c65a9c925f71",
+              "timestamp": "2026-07-07T10:19:59.528228+00:00",
+              "validation_checks": {
+                "has_contract_id": "contract_c65a9c925f71",
+                "has_trace_id": "comp_simulation_runtime_40b176773f",
+                "has_execution_plan": true,
+                "has_valid_module": "creator",
+                "has_constraints": true,
+                "has_contract_hash": "f2bac0501ae149bfa1a78b2e814acd2984765130fed072cee106f96ed089aee4"
+              }
+            },
+            "timestamp": "2026-07-07T10:19:59.539579+00:00"
+          },
+          "execution_result": {
+            "status": "success",
+            "message": "Creative content generated with context",
+            "result": {
+              "content": "Generated content for: unknown topic",
+              "related_context": [],
+              "enhanced_data": {
+                "blueprint": {
+                  "blueprint_type": "content_blueprint",
+                  "product_target": "creator",
+                  "content_type": "json",
+                  "title": "General",
+                  "outline": [
+                    "run_simulation"
+                  ]
+                },
+                "target_product": "creator",
+                "trace_id": "comp_simulation_runtime_40b176773f",
+                "workflow_id": "wf_f722cd60"
+              }
+            },
+            "trace_id": "comp_simulation_runtime_40b176773f",
+            "workflow_id": "wf_f722cd60"
+          },
+          "pipeline_status": "completed",
+          "deterministic_hash": "2b2e219f6162af1e",
+          "product_output": {
+            "simulation_result": {
+              "content": "Generated content for: unknown topic",
+              "related_context": [],
+              "enhanced_data": {
+                "blueprint": {
+                  "blueprint_type": "content_blueprint",
+                  "product_target": "creator",
+                  "content_type": "json",
+                  "title": "General",
+                  "outline": [
+                    "run_simulation"
+                  ]
+                },
+                "target_product": "creator",
+                "trace_id": "comp_simulation_runtime_40b176773f",
+                "workflow_id": "wf_f722cd60"
+              }
+            },
+            "status": "success",
+            "message": "Creative content generated with context"
+          },
+          "trace_id": "comp_simulation_runtime_40b176773f",
+          "workflow_id": "wf_f722cd60"
+        },
+        "timestamp": "2026-07-07T10:19:59.619916+00:00"
+      },
+      "artifact_chain": {
+        "trace_id": "comp_simulation_runtime_40b176773f",
+        "workflow_id": "wf_f722cd60",
+        "A1_instruction": "instruction_33d7f71a",
+        "A2_blueprint": "blueprint_eae8df26",
+        "A2b_contract": "contract_4af5c743",
+        "A2c_authority": "authority_a6f14f48",
+        "A2d_gate": "gate_7c11166c",
+        "A3_execution": "execution_6fd3d449",
+        "A4_result": "result_c5f7b1d1"
+      },
+      "chain_complete": true,
+      "replay_status_code": 200,
+      "replay_passed": true,
+      "bucket_status_code": 200,
+      "bucket_artifact_count": 4,
+      "bucket_artifact_types": [
+        "instruction",
+        "blueprint",
+        "execution",
+        "result"
+      ],
+      "passed": true
+    }
+  ],
+  "summary": {
+    "services_healthy": "7/8",
+    "products_passed": "2/4",
+    "all_healthy": false,
+    "all_products_passed": false
+  }
+}

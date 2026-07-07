@@ -18,21 +18,37 @@ python -m pip install -r requirements.txt
 python -m pip install -r creator-core/Core-Integrator-Sprint-1.1/requirements.txt
 ```
 
-### Startup order
+### Startup order (all 8 services)
 
-1. `BHIV Bucket` — `python bhiv_bucket.py`
-2. `Creator Core` — `cd creator-core/Core-Integrator-Sprint-1.1 && python main.py`
-3. `BHIV Core` — `python main.py`
-4. `Prompt Runner` — `python prompt-runner01/run_server.py`
-5. `Integration Bridge` — `python integration_bridge.py`
-
-Alternative startup commands:
+Use the orchestrator (recommended):
 
 ```bash
 python start_all.py
 ```
 
-or:
+Dependency order from `config/services.yml`:
+
+1. `BHIV Bucket` — port 8005
+2. `Prompt Runner` — port 8003
+3. `Creator Core` — port 8000
+4. `BHIV Core` — port 8001
+5. `CET Service` — port 8006
+6. `Sarathi Service` — port 8007
+7. `Gate Service` — port 8008
+8. `Integration Bridge` — port 8004 (depends on all above)
+
+Manual startup (if needed):
+
+1. `python bhiv_bucket.py`
+2. `python prompt-runner01/run_server.py`
+3. `cd creator-core/Core-Integrator-Sprint-1.1 && python main.py`
+4. `python main.py`
+5. `python cet_service.py`
+6. `python sarathi_service.py`
+7. `python gate_service.py`
+8. `python integration_bridge.py`
+
+Alternative:
 
 ```bash
 python deploy_and_test.py
@@ -46,8 +62,12 @@ Key variables used by the system:
 - `CREATOR_CORE_URL` — Creator Core URL (default `http://127.0.0.1:8000`)
 - `BHIV_CORE_URL` — BHIV Core URL (default `http://127.0.0.1:8001`)
 - `INTEGRATION_BRIDGE_URL` — Integration Bridge URL (default `http://127.0.0.1:8004`)
-- `BUCKET_URL` — Bucket URL (default `http://127.0.0.1:8005`)
-- `PORT` — service port override for Creator Core / BHIV Core
+- `CET_URL` — CET service URL (default `http://127.0.0.1:8006`)
+- `SARATHI_URL` — Sarathi service URL (default `http://127.0.0.1:8007`)
+- `GATE_URL` — Gate service URL (default `http://127.0.0.1:8008`)
+- `AUTH_API_KEY` — shared API key for protected endpoints
+- `AUTH_ENABLED` — set to `true` to enforce auth (default in orchestrator)
+- `RATE_LIMIT_IP_PER_MIN` — IP rate limit (orchestrator sets 10000 for local dev)
 - `HOST` — host binding for services
 - `DB_PATH` — path for BHIV Core database
 - `STORAGE_PATH` — artifact folder for Bucket
@@ -63,15 +83,28 @@ Use `.env`, `.env.integration_bridge`, or service-local env files to override de
 | Prompt Runner | 8003 |
 | Integration Bridge | 8004 |
 | BHIV Bucket | 8005 |
+| CET Service | 8006 |
+| Sarathi Service | 8007 |
+| Gate Service | 8008 |
 | API Gateway | 8080 |
 
 ### Health checks
 
 - Prompt Runner: `http://127.0.0.1:8003/health`
 - Creator Core: `http://127.0.0.1:8000/`
-- BHIV Core: `http://127.0.0.1:8001/`
+- BHIV Core: `http://127.0.0.1:8001/system/health`
 - Integration Bridge: `http://127.0.0.1:8004/pipeline/health`
 - BHIV Bucket: `http://127.0.0.1:8005/bucket/stats`
+- CET: `http://127.0.0.1:8006/health`
+- Sarathi: `http://127.0.0.1:8007/health`
+- Gate: `http://127.0.0.1:8008/health`
+
+### Live validation
+
+```bash
+python run_comprehensive_live_tests.py
+python test_production_runtime.py
+```
 
 ### Common local deployment failures
 

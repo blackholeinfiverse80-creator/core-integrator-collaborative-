@@ -283,6 +283,8 @@ class ServiceOrchestrator:
         env.setdefault("AUTH_ENABLED", "true")
         env.setdefault("AUTH_API_KEY", "prod_shakti_tantra_secret_key_2026")
         env.setdefault("AUTH_SECRET_KEY", "prod_shakti_tantra_secret_key_2026")
+        env.setdefault("RATE_LIMIT_IP_PER_MIN", "10000")
+        env.setdefault("RATE_LIMIT_USER_PER_MIN", "10000")
     
     def _get_service_runner(self, service_name: str) -> Optional[str]:
         """Get the runner script path for a service"""

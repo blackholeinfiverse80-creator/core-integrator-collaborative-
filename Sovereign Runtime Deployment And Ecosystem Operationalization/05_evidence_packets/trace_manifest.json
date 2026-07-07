@@ -1,11 +1,42 @@
 {
-  "generated_at": "2026-07-07T15:00:00+05:30",
+  "generated_at": "2026-07-07T10:25:00+00:00",
+  "classification": "live_service_evidence",
   "trace_ids": [
     {
+      "trace_id": "live_test_d61c664e3559",
+      "integration": "pipeline_wiring",
+      "product": "ttg",
+      "status": "pass",
+      "evidence_packet": "pipeline_wiring_runtime_evidence_packet.md"
+    },
+    {
+      "trace_id": "comp_ttv_bd10684a9d",
+      "integration": "ttv_onboarding",
+      "product": "ttv",
+      "status": "pass",
+      "evidence_packet": "ttv_runtime_evidence_packet.md"
+    },
+    {
+      "trace_id": "comp_simulation_runtime_40b176773f",
+      "integration": "simulation_runtime_onboarding",
+      "product": "simulation_runtime",
+      "status": "pass",
+      "evidence_packet": "simulation_runtime_runtime_evidence_packet.md"
+    },
+    {
+      "trace_id": "comp_gurukul_8934d450a8",
+      "integration": "gurukul_onboarding",
+      "product": "gurukul",
+      "status": "fail_rate_limit",
+      "evidence_packet": "gurukul_runtime_evidence_packet.md"
+    },
+    {
       "trace_id": "inst_tantra_606bdd086cb4",
-      "source": "full_tantra_flow_test.py",
-      "classification": "simulation_based_before_baseline"
+      "integration": "simulation_baseline",
+      "product": null,
+      "status": "simulation_only",
+      "note": "full_tantra_flow_test.py — not live proof"
     }
   ],
-  "notes": "Live trace_id collection is blocked by service lifecycle/auth instability; see 04_validation/local_deployment_results.md."
+  "raw_results": "comprehensive_live_test_results.json"
 }

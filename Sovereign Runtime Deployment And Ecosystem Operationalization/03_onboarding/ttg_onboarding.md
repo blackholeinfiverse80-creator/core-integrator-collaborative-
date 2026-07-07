@@ -1,9 +1,11 @@
 # TTG Onboarding
 
-- Trace ID: `5363db20b91848a8b9e920e1dfd3d82c`
-- Prompt Runner participation: confirmed via `/pipeline/execute` with `product_context=ttg`.
-- Creator Core participation: blueprint stored in bucket trace chain.
-- Core execution participation: CET -> Sarathi -> Gate -> BHIV execution all present (A2b..A3).
-- Bucket persistence: replay output includes stored artifacts for trace.
-- InsightFlow telemetry: integration bridge emits lineage event to `bhiv_bucket/insightflow_events.jsonl`.
-- Replay capability: verified via `/pipeline/replay/5363db20b91848a8b9e920e1dfd3d82c` (status 200).
+**Trace ID:** `live_test_d61c664e3559`  
+**Status:** PASS (live)
+
+1. **Prompt Runner** — `tasks: [generate_game_blueprint]`, `product_context: ttg`
+2. **Creator Core** — blueprint stored in chain
+3. **Core execution** — CET → Sarathi → Gate → BHIV (A2b–A3 present)
+4. **Bucket** — `/bucket/trace/live_test_d61c664e3559` → 200
+5. **InsightFlow** — events in `bhiv_bucket/insightflow_events.jsonl`
+6. **Replay** — `/pipeline/replay/live_test_d61c664e3559` → 200
