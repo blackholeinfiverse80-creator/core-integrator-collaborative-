@@ -1,18 +1,19 @@
 # TTV Runtime Evidence Packet
 
-**Product:** Tabletop Video (TTV)  
-**Trace ID:** `comp_ttv_bd10684a9d`  
-**Classification:** live-service evidence
+**Product:** TTV (video/education content)  
+**Trace ID:** `comp_ttv_49a28b3bbd`  
+**Classification:** live-service evidence  
+**Generated:** 2026-07-07 via `run_comprehensive_live_tests.py`
 
 ## Six checklist items
 
-1. **Prompt Runner** — `module: video`, `tasks: [generate_video_script]`
-2. **Creator Core** — blueprint with title "Photosynthesis For Students"
-3. **Core execution** — full A1→A4 chain including CET contract hash `d0a93b8f...`
-4. **Bucket** — 4 artifacts stored, replay 200
-5. **InsightFlow** — bridge telemetry emitted
-6. **Replay** — PASS
+1. **Prompt Runner** — instruction with `product_context: ttv`, video-related tasks extracted
+2. **Creator Core** — blueprint envelope generated
+3. **Core execution** — CET → Sarathi → Gate → BHIV chain complete
+4. **Bucket** — `/bucket/trace/comp_ttv_49a28b3bbd` returns 200
+5. **InsightFlow** — bridge lineage events emitted
+6. **Replay** — `/pipeline/replay/comp_ttv_49a28b3bbd` returns 200
 
 ## Product output
 
-TTV adapter produced `video_script`, `audio_requirements`, `visual_elements`, `timeline`.
+TTV output adapter applied (`video_script`, `scenes`, `metadata`).

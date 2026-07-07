@@ -1,23 +1,19 @@
 # Gurukul Runtime Evidence Packet
 
-**Product:** Gurukul  
-**Trace ID:** `comp_gurukul_8934d450a8` (failed)  
-**Classification:** partial — blocked by rate limit
+**Product:** Gurukul (education)  
+**Trace ID:** `comp_gurukul_a8535de499`  
+**Classification:** live-service evidence  
+**Generated:** 2026-07-07 via `run_comprehensive_live_tests.py`
 
-## Status
+## Six checklist items
 
-Pipeline failed with BHIV Core 429 during comprehensive test burst. Adapter code is wired in `integration_bridge.py` (`GurukulInputNormalizer`, `GurukulOutputAdapter`).
+1. **Prompt Runner** — instruction with `product_context: gurukul`, tasks include `create_lesson_plan`
+2. **Creator Core** — blueprint with `target_product: education`
+3. **Core execution** — full CET → Sarathi → Gate → BHIV chain
+4. **Bucket** — `/bucket/trace/comp_gurukul_a8535de499` returns 200
+5. **InsightFlow** — bridge lineage events emitted
+6. **Replay** — `/pipeline/replay/comp_gurukul_a8535de499` returns 200
 
-## Retry command
+## Product output
 
-```bash
-# After restarting services with RATE_LIMIT_IP_PER_MIN=10000
-curl -X POST http://127.0.0.1:8004/pipeline/execute \
-  -H "X-API-Key: prod_shakti_tantra_secret_key_2026" \
-  -H "Content-Type: application/json" \
-  -d '{"prompt":"Plan a lesson on algebra for grade 8","product_context":"gurukul"}'
-```
-
-## Production proof statement
-
-Wiring exists; live end-to-end proof pending successful execution without rate-limit collision.
+Gurukul output adapter applied (`lesson_plan`, `assessment`, `metadata`).

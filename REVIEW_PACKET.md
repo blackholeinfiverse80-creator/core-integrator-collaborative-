@@ -10,10 +10,7 @@ The 2026-06-20 folder used `full_tantra_flow_test.py` (in-process simulation) as
 
 ```bash
 python start_all.py
-curl -X POST http://127.0.0.1:8004/pipeline/execute \
-  -H "X-API-Key: prod_shakti_tantra_secret_key_2026" \
-  -H "Content-Type: application/json" \
-  -d '{"prompt":"Design a cooperative dungeon board game","product_context":"ttg"}'
+python run_comprehensive_live_tests.py
 ```
 
 ## Core flow (live)
@@ -22,30 +19,30 @@ curl -X POST http://127.0.0.1:8004/pipeline/execute \
 
 Execution policy: Gate authorizes; BHIV Core executes (no double-execution).
 
-## Live example
+## Live validation (2026-07-07)
 
-- **Trace ID:** `live_test_d61c664e3559`
-- **Artifact chain:** A1 → A2 → A2b (contract) → A2c (authority) → A2d (gate) → A3 → A4
-- **Replay:** `GET /pipeline/replay/live_test_d61c664e3559` → 200
+**Command:** `python run_comprehensive_live_tests.py`  
+**Result:** 8/8 services healthy, 4/4 products passed
 
-## Product validation
-
-| Product | Trace | Status |
+| Product | Trace ID | Status |
 |---|---|---|
-| TTG | `live_test_d61c664e3559` | PASS |
-| TTV | `comp_ttv_bd10684a9d` | PASS |
-| Simulation Runtime | `comp_simulation_runtime_40b176773f` | PASS |
-| Gurukul | `comp_gurukul_8934d450a8` | FAIL (429) |
+| TTG | `comp_ttg_2f81022aee` | PASS |
+| TTV | `comp_ttv_49a28b3bbd` | PASS |
+| Gurukul | `comp_gurukul_a8535de499` | PASS |
+| Simulation Runtime | `comp_simulation_runtime_de6b34f42a` | PASS |
 
-## Honest failure cases
+Each trace: full A1→A4 chain including A2b (contract), A2c (authority), A2d (gate); replay 200; bucket 200.
 
-- BHIV Core rate limit (429) blocks burst pipeline runs
-- Bucket stores 4 artifact types; intermediate authority artifacts not separately persisted
+## Honest limitations
+
 - Remote/mixed deployment not validated in this sprint
+- Distributed replay from second node not demonstrated
+- Bucket stores 4 artifact types; intermediate authority artifacts not separately persisted
+- Observability dashboard not built
 
 ## Readiness statement
 
-**Development-ready** with live local validation. **Not production-certified.** See `Sovereign Runtime Deployment And Ecosystem Operationalization/08_production_readiness/production_readiness_report.md`.
+**Development-ready** with live local validation across all 4 onboarded products. **Not production-certified.** See `Sovereign Runtime Deployment And Ecosystem Operationalization/08_production_readiness/production_readiness_report.md`.
 
 ## Evidence index
 

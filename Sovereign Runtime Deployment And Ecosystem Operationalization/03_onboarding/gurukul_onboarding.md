@@ -1,13 +1,11 @@
 # Gurukul Onboarding
 
-**Trace ID:** `comp_gurukul_8934d450a8`  
-**Status:** PARTIAL — adapter wired, live run blocked by BHIV 429
+**Trace ID:** `comp_gurukul_a8535de499`  
+**Validated:** 2026-07-07 (`run_comprehensive_live_tests.py`)
 
-1. **Prompt Runner** — adapter normalizes gurukul prompts (wired)
-2. **Creator Core** — not reached in failed run
-3. **Core execution** — blocked at BHIV rate limit
-4. **Bucket** — no complete trace
-5. **InsightFlow** — prior gurukul events exist in jsonl from earlier attempts
-6. **Replay** — not applicable for failed trace
-
-Retry after service restart with elevated rate limits.
+1. **Prompt Runner participation** — lesson plan prompt → instruction with `product_context=gurukul`
+2. **Creator Core participation** — blueprint with `target_product: education`
+3. **Core execution participation** — CET → Sarathi → Gate → BHIV chain complete
+4. **Bucket persistence** — `/bucket/trace/comp_gurukul_a8535de499` returns 200
+5. **InsightFlow telemetry** — bridge lineage events emitted
+6. **Replay capability** — `/pipeline/replay/comp_gurukul_a8535de499` returns 200

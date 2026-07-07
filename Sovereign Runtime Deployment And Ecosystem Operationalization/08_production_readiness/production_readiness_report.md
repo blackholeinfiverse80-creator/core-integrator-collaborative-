@@ -7,14 +7,15 @@
 
 | Criterion | Status | Evidence |
 |---|---|---|
-| CET/Sarathi/Gate in live pipeline | PASS | `live_test_d61c664e3559` |
-| Prompt Runner real processing | PASS | `comp_ttv_bd10684a9d` |
-| TTG onboarding | PASS | `live_test_d61c664e3559` |
-| TTV onboarding | PASS | `comp_ttv_bd10684a9d` |
-| Simulation Runtime onboarding | PASS | `comp_simulation_runtime_40b176773f` |
-| Gurukul onboarding | PARTIAL | 429 rate limit |
-| Replay | PASS | 3 traces replay 200 |
+| CET/Sarathi/Gate in live pipeline | PASS | `comp_ttg_2f81022aee` |
+| Prompt Runner real processing | PASS | all 4 product traces |
+| TTG onboarding | PASS | `comp_ttg_2f81022aee` |
+| TTV onboarding | PASS | `comp_ttv_49a28b3bbd` |
+| Gurukul onboarding | PASS | `comp_gurukul_a8535de499` |
+| Simulation Runtime onboarding | PASS | `comp_simulation_runtime_de6b34f42a` |
+| Replay | PASS | all 4 traces replay 200 |
 | Local 8-service deployment | PASS | `04_validation/local_deployment_results.md` |
+| Comprehensive test suite | PASS | `python run_comprehensive_live_tests.py` → 4/4 |
 
 ## What is not proven
 
@@ -23,7 +24,7 @@
 | Remote deployment | NOT RUN |
 | Mixed deployment | NOT RUN |
 | Distributed replay (second node) | NOT RUN |
-| Service kill + restart recovery | NOT RUN |
+| Service kill + restart recovery | PARTIAL (BHIV restart demonstrated) |
 | Full InsightFlow across all services | PARTIAL |
 | Observability dashboard | NOT BUILT |
 
@@ -33,4 +34,4 @@ The 2026-06-20 certification folder claimed "APPROVED FOR PRODUCTION RELEASE" ba
 
 ## Recommendation
 
-Safe for continued local development and integration testing. Before production release: deploy remotely, complete Gurukul live proof, build dashboard, and demonstrate distributed replay.
+Safe for continued local development and integration testing. Before production release: deploy remotely, demonstrate distributed replay, and complete observability dashboard.

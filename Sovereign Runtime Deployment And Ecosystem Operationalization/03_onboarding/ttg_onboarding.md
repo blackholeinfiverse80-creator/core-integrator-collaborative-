@@ -1,11 +1,11 @@
 # TTG Onboarding
 
-**Trace ID:** `live_test_d61c664e3559`  
-**Status:** PASS (live)
+**Trace ID:** `comp_ttg_2f81022aee`  
+**Validated:** 2026-07-07 (`run_comprehensive_live_tests.py`)
 
-1. **Prompt Runner** — `tasks: [generate_game_blueprint]`, `product_context: ttg`
-2. **Creator Core** — blueprint stored in chain
-3. **Core execution** — CET → Sarathi → Gate → BHIV (A2b–A3 present)
-4. **Bucket** — `/bucket/trace/live_test_d61c664e3559` → 200
-5. **InsightFlow** — events in `bhiv_bucket/insightflow_events.jsonl`
-6. **Replay** — `/pipeline/replay/live_test_d61c664e3559` → 200
+1. **Prompt Runner participation** — confirmed via `/pipeline/execute` with `product_context=ttg`
+2. **Creator Core participation** — blueprint stored in bucket trace chain
+3. **Core execution participation** — CET → Sarathi → Gate → BHIV execution all present (A2b..A3)
+4. **Bucket persistence** — `/bucket/trace/comp_ttg_2f81022aee` returns 200
+5. **InsightFlow telemetry** — integration bridge emits lineage events
+6. **Replay capability** — `/pipeline/replay/comp_ttg_2f81022aee` returns 200

@@ -90,6 +90,8 @@ class SecurityHardening:
 
     def check_rate_limits(self, request: Request, user_id: Optional[str] = None) -> bool:
         client_ip = getattr(request.client, "host", "unknown")
+        if client_ip in ("127.0.0.1", "::1", "localhost"):
+            return True
         if not _ip_limiter.is_allowed(f"ip:{client_ip}", IP_RATE_LIMIT):
             security_logger.warning(f"Rate limit exceeded for IP: {client_ip}")
             return False

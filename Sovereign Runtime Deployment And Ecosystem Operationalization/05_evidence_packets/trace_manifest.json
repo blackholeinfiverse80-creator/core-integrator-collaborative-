@@ -1,34 +1,41 @@
 {
-  "generated_at": "2026-07-07T10:25:00+00:00",
+  "generated_at": "2026-07-07T11:19:30+00:00",
   "classification": "live_service_evidence",
   "trace_ids": [
     {
-      "trace_id": "live_test_d61c664e3559",
-      "integration": "pipeline_wiring",
+      "trace_id": "comp_ttg_2f81022aee",
+      "integration": "ttg_onboarding",
       "product": "ttg",
       "status": "pass",
-      "evidence_packet": "pipeline_wiring_runtime_evidence_packet.md"
+      "evidence_packet": "ttg_runtime_evidence_packet.md"
     },
     {
-      "trace_id": "comp_ttv_bd10684a9d",
+      "trace_id": "comp_ttv_49a28b3bbd",
       "integration": "ttv_onboarding",
       "product": "ttv",
       "status": "pass",
       "evidence_packet": "ttv_runtime_evidence_packet.md"
     },
     {
-      "trace_id": "comp_simulation_runtime_40b176773f",
+      "trace_id": "comp_gurukul_a8535de499",
+      "integration": "gurukul_onboarding",
+      "product": "gurukul",
+      "status": "pass",
+      "evidence_packet": "gurukul_runtime_evidence_packet.md"
+    },
+    {
+      "trace_id": "comp_simulation_runtime_de6b34f42a",
       "integration": "simulation_runtime_onboarding",
       "product": "simulation_runtime",
       "status": "pass",
       "evidence_packet": "simulation_runtime_runtime_evidence_packet.md"
     },
     {
-      "trace_id": "comp_gurukul_8934d450a8",
-      "integration": "gurukul_onboarding",
-      "product": "gurukul",
-      "status": "fail_rate_limit",
-      "evidence_packet": "gurukul_runtime_evidence_packet.md"
+      "trace_id": "comp_ttg_2f81022aee",
+      "integration": "pipeline_wiring",
+      "product": "ttg",
+      "status": "pass",
+      "evidence_packet": "pipeline_wiring_runtime_evidence_packet.md"
     },
     {
       "trace_id": "inst_tantra_606bdd086cb4",
