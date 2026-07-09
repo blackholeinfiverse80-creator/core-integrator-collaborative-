@@ -14,6 +14,10 @@ VOLATILE_KEYS = frozenset(
         "decision_id",
         "created_at",
         "updated_at",
+        "derived_at",
+        "raised_at",
+        "signal_id",
+        "alert_id",
     }
 )
 
@@ -31,6 +35,7 @@ def compute_pipeline_deterministic_hash(
     blueprint: Optional[Dict[str, Any]],
     contract: Optional[Dict[str, Any]],
     execution: Optional[Dict[str, Any]],
+    signal: Optional[Dict[str, Any]] = None,
 ) -> str:
     """Hash semantic pipeline content; excludes trace-scoped volatile fields."""
     stable = {
@@ -59,15 +64,28 @@ def compute_pipeline_deterministic_hash(
             }
         ),
     }
+    if signal is not None:
+        stable["signal"] = strip_volatile(
+            {
+                "metric": signal.get("metric"),
+                "value": signal.get("value"),
+                "classification": signal.get("classification"),
+                "threshold_breached": signal.get("threshold_breached"),
+            }
+        )
     combined = json.dumps(stable, sort_keys=True)
     return hashlib.sha256(combined.encode()).hexdigest()[:16]
 
 
 def hash_from_bucket_artifacts(artifacts: list) -> str:
     by_type = {a["artifact_type"]: a.get("data", {}) for a in artifacts}
+    signal = by_type.get("signal")
+    if signal is None:
+        signal = (by_type.get("alert") or {}).get("signal")
     return compute_pipeline_deterministic_hash(
         by_type.get("instruction"),
         by_type.get("blueprint"),
         by_type.get("contract"),
         by_type.get("execution"),
+        signal=signal,
     )

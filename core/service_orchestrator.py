@@ -288,6 +288,10 @@ class ServiceOrchestrator:
     
     def _get_service_runner(self, service_name: str) -> Optional[str]:
         """Get the runner script path for a service"""
+        service_config = self.services.get(service_name, {})
+        configured_runner = service_config.get("runner_script")
+        if configured_runner:
+            return configured_runner
         runners = {
             'prompt_runner': 'prompt-runner01/run_server.py',
             'creator_core': 'creator-core/Core-Integrator-Sprint-1.1/main.py',
@@ -297,6 +301,8 @@ class ServiceOrchestrator:
             'cet': 'cet_service.py',
             'sarathi': 'sarathi_service.py',
             'gate': 'gate_service.py',
+            'control_plane': 'control_plane_service.py',
+            'telemetry': 'telemetry_service.py',
         }
         return runners.get(service_name)
     

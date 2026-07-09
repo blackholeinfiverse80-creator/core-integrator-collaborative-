@@ -16,6 +16,8 @@ services:
       - "8006:8006"  # CET Service
       - "8007:8007"  # Sarathi Service
       - "8008:8008"  # Gate Service
+      - "8009:8009"  # Control Plane Service
+      - "8010:8010"  # Telemetry Service
     env_file:
       - .env
     environment:
@@ -32,7 +34,7 @@ services:
     networks:
       - shakti-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8004/pipeline/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8009/system/status"]
       interval: 30s
       timeout: 15s
       retries: 3

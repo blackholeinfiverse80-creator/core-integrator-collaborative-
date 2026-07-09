@@ -4,29 +4,35 @@ Service URL Configuration for Independent Deployment
 Each service can be deployed separately and configured via environment variables.
 """
 
-import os
 from typing import Dict
 
-# Service URL Configuration
-# Each service reads these from environment variables
+from config.config_manager import ConfigManager
 
-SERVICE_URLS = {
-    "prompt_runner": os.getenv("PROMPT_RUNNER_URL", "https://prompt-runner.onrender.com"),
-    "creator_core": os.getenv("CREATOR_CORE_URL", "http://127.0.0.1:8000"),
-    "bhiv_core": os.getenv("BHIV_CORE_URL", "http://127.0.0.1:8001"),
-    "integration_bridge": os.getenv("INTEGRATION_BRIDGE_URL", "http://127.0.0.1:8004"),
-    "bucket": os.getenv("BUCKET_URL", "http://127.0.0.1:8005"),
-}
+SERVICE_KEYS = [
+    "prompt_runner",
+    "creator_core",
+    "bhiv_core",
+    "integration_bridge",
+    "bucket",
+    "cet",
+    "sarathi",
+    "gate",
+    "control_plane",
+    "telemetry",
+]
 
 
 def get_service_url(service_name: str) -> str:
     """Get URL for a specific service"""
-    return SERVICE_URLS.get(service_name, f"http://127.0.0.1:8000")
+    try:
+        return ConfigManager.get_service_url(service_name)
+    except Exception:
+        return "http://127.0.0.1:8000"
 
 
 def get_all_service_urls() -> Dict[str, str]:
     """Get all service URLs"""
-    return SERVICE_URLS.copy()
+    return {name: get_service_url(name) for name in SERVICE_KEYS}
 
 
 def print_service_urls():
@@ -34,7 +40,7 @@ def print_service_urls():
     print("\n" + "="*70)
     print("SERVICE URLS CONFIGURATION")
     print("="*70)
-    for name, url in SERVICE_URLS.items():
+    for name, url in get_all_service_urls().items():
         env_var = f"{name.upper()}_URL"
         print(f"  {name:20s} -> {url}")
         print(f"  {'(set via ' + env_var + ')':20s}")

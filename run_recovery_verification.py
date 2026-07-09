@@ -15,7 +15,7 @@ BASE = "http://127.0.0.1"
 API_KEY = "prod_shakti_tantra_secret_key_2026"
 HEADERS = {"X-API-Key": API_KEY}
 REPO = Path(__file__).parent
-OUT_DIR = REPO / "Sovereign Runtime Deployment And Ecosystem Operationalization/10_recovery_hardening"
+OUT_DIR = REPO / "SHAKTI Production Convergence Sprint (Energy Intelligence Platform Production Transition)/evidence/recovery_evidence"
 
 
 def pid_on_port(port: int) -> int | None:
@@ -131,11 +131,13 @@ def main() -> int:
         "bucket_artifact_count": artifact_count,
         "replay_after_restart": replay_status == 200 and artifact_count >= 5,
     }
+    runtime_restart = verify_runtime_manager_restart()
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "interruption": interruption,
         "recovery": recovery,
-        "passed": clean_failure and recovery.get("replay_after_restart"),
+        "runtime_manager_restart_scenario": runtime_restart,
+        "passed": clean_failure and recovery.get("replay_after_restart") and runtime_restart.get("passed", False),
     }
 
     (OUT_DIR / "recovery_verification.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
@@ -190,6 +192,52 @@ Restart BHIV Core; replay pre-failure trace from Bucket.
     (OUT_DIR / "replay_after_recovery_results.md").write_text(replay_md, encoding="utf-8")
     print(json.dumps(report, indent=2))
     return 0 if report["passed"] else 1
+
+
+def verify_runtime_manager_restart() -> dict:
+    status_file = REPO / "runtime_manager/state/runtime_status.json"
+    if not status_file.exists():
+        return {"passed": False, "reason": "runtime_status.json not found"}
+    before = json.loads(status_file.read_text(encoding="utf-8"))
+    telem = before.get("services", {}).get("telemetry", {})
+    control = before.get("services", {}).get("control_plane", {})
+    telem_pid = telem.get("pid")
+    control_pid = control.get("pid")
+    if not telem_pid or not control_pid:
+        return {"passed": False, "reason": "telemetry/control_plane not running"}
+    try:
+        subprocess.run(["taskkill", "/F", "/PID", str(telem_pid)], check=True, capture_output=True)
+        subprocess.run(["taskkill", "/F", "/PID", str(control_pid)], check=True, capture_output=True)
+    except Exception as exc:
+        return {"passed": False, "reason": f"taskkill failed: {exc}"}
+
+    deadline = time.time() + 45
+    while time.time() < deadline:
+        latest = json.loads(status_file.read_text(encoding="utf-8"))
+        t = latest.get("services", {}).get("telemetry", {})
+        c = latest.get("services", {}).get("control_plane", {})
+        if (
+            t.get("status") == "healthy"
+            and c.get("status") == "healthy"
+            and t.get("restarts", 0) >= telem.get("restarts", 0) + 1
+            and c.get("restarts", 0) >= control.get("restarts", 0) + 1
+        ):
+            return {
+                "passed": True,
+                "before": {"telemetry": telem, "control_plane": control},
+                "after": {"telemetry": t, "control_plane": c},
+            }
+        time.sleep(2)
+    latest = json.loads(status_file.read_text(encoding="utf-8"))
+    return {
+        "passed": False,
+        "reason": "services did not auto-restart within timeout",
+        "before": {"telemetry": telem, "control_plane": control},
+        "after": {
+            "telemetry": latest.get("services", {}).get("telemetry", {}),
+            "control_plane": latest.get("services", {}).get("control_plane", {}),
+        },
+    }
 
 
 if __name__ == "__main__":

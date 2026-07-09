@@ -122,7 +122,38 @@ services:
     environment:
       LOG_LEVEL: "INFO"
 
+  control_plane:
+    name: "Control Plane Service"
+    port: 8009
+    description: "Runtime observability and executive dashboard API"
+    host: "127.0.0.1"
+    timeout: 30
+    retries: 3
+    health_check_endpoint: "/health"
+    depends_on:
+      - bucket
+      - bhiv_core
+      - integration_bridge
+      - telemetry
+    environment:
+      LOG_LEVEL: "INFO"
+
+  telemetry:
+    name: "Telemetry Service"
+    port: 8010
+    description: "Telemetry ingest and autonomous loop"
+    host: "127.0.0.1"
+    timeout: 30
+    retries: 3
+    health_check_endpoint: "/health"
+    depends_on:
+      - integration_bridge
+      - bucket
+    environment:
+      LOG_LEVEL: "INFO"
+
 # API Gateway Configuration
+# not implemented this sprint
 api_gateway:
   name: "API Gateway"
   port: 8080
@@ -169,7 +200,7 @@ logging:
 # Monitoring and Observability
 monitoring:
   enabled: true
-  metrics_port: 9090
+  metrics_port: 9090  # /metrics served by control_plane_service on 8009 in this sprint
   health_check_interval: 10  # seconds
 
 # Feature Flags
@@ -192,3 +223,5 @@ urls:
   cet: "http://127.0.0.1:8006"
   sarathi: "http://127.0.0.1:8007"
   gate: "http://127.0.0.1:8008"
+  control_plane: "http://127.0.0.1:8009"
+  telemetry: "http://127.0.0.1:8010"

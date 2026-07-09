@@ -1,53 +1,114 @@
 # REVIEW_PACKET
 
-This packet supersedes the 2026-06-20 certification production-readiness claim and prior review drafts in `docs/review/` and `review_packets/`.
+**Supersedes:** previous root `REVIEW_PACKET.md` (2026-07-07 development-ready packet)  
+**Updated:** 2026-07-09  
+**Sprint:** SHAKTI Production Convergence Sprint — Energy Intelligence Platform Production Transition
 
-## Why superseded
+This packet supersedes the prior review because continuous runtime management, telemetry-to-alert spine execution, control-plane observability/dashboard APIs, automated test coverage, and operational evidence now exist and were validated.
 
-The 2026-06-20 folder used `full_tantra_flow_test.py` (in-process simulation) as proof of live multi-service operation. This packet is backed by real HTTP traces against running services.
+---
 
-## Entry point
+## Entry points
 
 ```bash
-python start_all.py
-python run_comprehensive_live_tests.py
+python -m runtime_manager
 ```
 
-## Core flow (live)
+```bash
+python "SHAKTI Production Convergence Sprint (Energy Intelligence Platform Production Transition)/demo/production_demo.py"
+```
 
-`integration_bridge.py` → Prompt Runner → Creator Core → **CET** → **Sarathi** → **Gate** → BHIV Core → Bucket
+```bash
+python -m pytest tests/test_*_sprint.py -v
+python "SHAKTI Production Convergence Sprint (Energy Intelligence Platform Production Transition)/demo/run_sprint_validation.py"
+```
 
-Execution policy: Gate authorizes; BHIV Core executes (no double-execution).
+---
 
-## Live validation (2026-07-07, Phase 2 completion)
+## Mandatory deliverables status (2026-07-09)
 
-**Command:** `python run_comprehensive_live_tests.py`  
-**Result:** 8/8 services healthy, 4/4 products passed, 7/7 bucket artifact types per trace
+| # | Deliverable | Status | Proof |
+|---|---|---|---|
+| 1 | Updated GitHub repository | **READY** (local) | Code + tests in repo; push pending operator action |
+| 2 | Working runtime manager | **PASS** | `runtime_manager/` + 10 unit tests PASS |
+| 3 | Continuous service execution | **PASS** | Auto-restart evidence + live run logs |
+| 4 | Live observability APIs | **PASS** | `/metrics`, `/health`, `/system/status` + 3 integration tests |
+| 5 | Executive dashboard APIs | **PASS** | All 5 `/dashboard/*` endpoints + 5 integration tests |
+| 6 | Replay validation | **PASS** | `telemetry_hash_match_*.json` + 3 determinism tests |
+| 7 | Recovery validation | **PASS** | `recovery_verification.json` |
+| 8 | Runtime evidence logs | **PASS** | `evidence/` tree + `validation_runs/` |
+| 9 | `REVIEW_PACKET.md` | **PASS** | This file |
+| 10 | Demo video (10–15 min) | **PARTIAL** | Script + transcript ready; video not recorded |
 
-| Product | Trace ID | Status |
+**Automated testing (2026-07-09):** 38/38 pytest PASS — see `evidence/validation_runs/sprint_validation_20260709T142110Z.json`
+
+---
+
+## Spine flow (live trace-backed)
+
+Telemetry (`telemetry_service.py`) → Validation (`spine/telemetry_schema.py`) → Signal (`spine/signal_generator.py`) → Intelligence/Decision (`integration_bridge.py` → CET/Sarathi/Gate/BHIV Core) → Alert (`spine/alert_generator.py`) → Dashboard (`control_plane_service.py`) → Audit (`bhiv_bucket.py`) → Replay (`/pipeline/replay/{trace_id}`)
+
+Representative trace IDs:
+- `trace_0a5c8b0a7e33` (telemetry ingest)
+- `trace_ae90e371d8da` (production demo end-to-end)
+- `d688643497934795be3591478673b000` (plain pipeline execution)
+- `rec_446a0d16ac` (recovery scenario)
+
+---
+
+## Results table
+
+| Metric | Result | Evidence |
 |---|---|---|
-| TTG | `comp_ttg_434a5d3954` | PASS |
-| TTV | `comp_ttv_49093259a5` | PASS |
-| Gurukul | `comp_gurukul_db1cef24b5` | PASS |
-| Simulation Runtime | `comp_simulation_runtime_4397308533` | PASS |
+| Services managed | 10 services under runtime manager | `.../evidence/execution_logs/` |
+| Telemetry events processed | Multiple HTTP 200 ingest runs | `.../evidence/api_evidence/telemetry_ingest_*.json` |
+| Alerts raised | Stored + visible on dashboard | `.../evidence/api_evidence/dashboard_alerts_*.json` |
+| Replay determinism | Hash match `matched=true` | `.../evidence/replay_logs/telemetry_hash_match_20260708T100842Z.json` |
+| Recovery | BHIV kill + auto-restart passed | `.../evidence/recovery_evidence/recovery_verification.json` |
+| Automated tests | 38 passed, 0 failed | `.../evidence/validation_runs/sprint_validation_20260709T142110Z.json` |
 
-**Determinism:** `det_48493b5f64` / `det_cf1fd1c3f0` — same prompt, matching `deterministic_hash` `fd831a2e7c847d0e`; replay reconstructs hash.
-
-**Recovery:** `rec_3b2c0c81b9` — BHIV unavailable at execution (HTTP 500), 5 artifacts persisted; replay 200 after BHIV restart.
-
-**Observability:** `GET /bucket/dashboard` → 200, 90 InsightFlow events across cet/sarathi/gate/bhiv_core/integration_bridge.
-
-## Honest limitations
-
-- Remote/mixed deployment not validated (no deploy credentials; see `09_remote_mixed_validation/deployment_constraints.md`)
-- Distributed replay from second node not demonstrated
-- No HTML observability UI (JSON dashboard endpoint only)
-- True SIGKILL mid-BHIV-call not demonstrated (pipeline too fast locally; recovery uses BHIV-down-at-execution)
-
-## Readiness statement
-
-**Development-ready** with live local validation across all 4 onboarded products, 7-type artifact lineage, determinism verification, and recovery replay. **Not production-certified.**
+---
 
 ## Evidence index
 
-`Sovereign Runtime Deployment And Ecosystem Operationalization/05_evidence_packets/trace_manifest.json`
+- Implementation spec: `SHAKTI Production Convergence Sprint (Energy Intelligence Platform Production Transition)/Implementation.md`
+- Sprint status log: `SHAKTI Production Convergence Sprint (Energy Intelligence Platform Production Transition)/SPRINT_STATUS.md`
+- Testing report: `SHAKTI Production Convergence Sprint (Energy Intelligence Platform Production Transition)/TESTING_VALIDATION.md`
+- Frontend API contracts: `FRONTEND_API_CONTRACTS.md`
+- Evidence root: `SHAKTI Production Convergence Sprint (Energy Intelligence Platform Production Transition)/evidence/`
+  - `execution_logs/`
+  - `replay_logs/`
+  - `runtime_metrics/`
+  - `trace_samples/`
+  - `api_evidence/`
+  - `recovery_evidence/`
+  - `validation_runs/` ← automated test runs (2026-07-09)
+
+---
+
+## Demo artifact
+
+- Demo script: `SHAKTI Production Convergence Sprint (Energy Intelligence Platform Production Transition)/demo/production_demo.py`
+- Demo transcript: `.../evidence/api_evidence/production_demo_transcript.json`
+- Recording guide: `.../demo/demo_recording_notes.md`
+- Validation runner: `.../demo/run_sprint_validation.py`
+- Video link: _(to be added after upload by operator)_
+
+---
+
+## Honest limitations
+
+- `monitoring.metrics_port: 9090` not dual-bound; `/metrics` served on 8009.
+- Windows orphan-free graceful shutdown: **PARTIAL** — evidence in `.../evidence/runtime_metrics/shutdown_verification_20260708T101005Z.json`.
+- Control-plane dashboard APIs have no production auth model yet.
+- `success_rate` on `/dashboard/executive` returns `null` (not computed server-side).
+- Demo video not yet recorded (deliverable 10).
+- Repository changes not yet pushed to `origin main` (operator action).
+
+---
+
+## Readiness statement
+
+As of **2026-07-09**, sprint implementation is validated by **38 automated tests (all passing)**, prior live operational evidence, and a passing validation runner. The system demonstrates continuous runtime, telemetry-driven execution spine, observability/dashboard APIs, replay/recovery, and demo script execution.
+
+This remains a **development-stage validation packet**, not a production certification claim. Two deliverables remain partial: **demo video** and **orphan-free shutdown on Windows**.

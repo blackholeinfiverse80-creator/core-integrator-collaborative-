@@ -8,7 +8,9 @@ secured with API key middleware.
 """
 
 import json
+import importlib
 import os
+import sys
 import uuid
 import requests
 from datetime import datetime, timezone
@@ -23,8 +25,18 @@ from src.adapters.gurukul_input_normalizer import GurukulInputNormalizer
 from src.adapters.gurukul_output_adapter import GurukulOutputAdapter
 from src.adapters.simulation_runtime_input_normalizer import SimulationRuntimeInputNormalizer
 from src.adapters.simulation_runtime_output_adapter import SimulationRuntimeOutputAdapter
+from config import ConfigManager
 from src.utils.insightflow import make_event, make_lineage_event
 from src.utils.determinism import compute_pipeline_deterministic_hash
+
+REPO_ROOT = Path(__file__).resolve().parent
+SPRINT_DIR = REPO_ROOT / "SHAKTI Production Convergence Sprint (Energy Intelligence Platform Production Transition)"
+if str(SPRINT_DIR) not in sys.path:
+    sys.path.insert(0, str(SPRINT_DIR))
+
+_metrics_module = importlib.import_module("runtime_manager.metrics_middleware")
+request_metrics_middleware = _metrics_module.request_metrics_middleware
+get_local_metrics_snapshot = _metrics_module.get_local_metrics_snapshot
 
 # Load environment variables
 load_dotenv()
@@ -90,7 +102,7 @@ class ArtifactGraph:
         return artifact_id
         
     def _get_artifact_number(self, artifact_type: str) -> int:
-        mapping = {"instruction": 1, "blueprint": 2, "contract": "2b", "authority": "2c", "gate": "2d", "execution": 3, "result": 4}
+        mapping = {"telemetry": 0, "instruction": 1, "blueprint": 2, "contract": "2b", "authority": "2c", "gate": "2d", "alert": 5, "execution": 3, "result": 4}
         return mapping.get(artifact_type, 0)
 
 
@@ -98,13 +110,13 @@ class BHIVIntegrationBridge:
     """Main integration orchestrator"""
     
     def __init__(self):
-        self.prompt_runner_url = os.getenv("PROMPT_RUNNER_URL", "http://127.0.0.1:8003")
-        self.creator_core_url = os.getenv("CREATOR_CORE_URL", "http://127.0.0.1:8000")
-        self.bhiv_core_url = os.getenv("BHIV_CORE_URL", "http://127.0.0.1:8001")
-        self.cet_url = os.getenv("CET_URL", "http://127.0.0.1:8006")
-        self.sarathi_url = os.getenv("SARATHI_URL", "http://127.0.0.1:8007")
-        self.gate_url = os.getenv("GATE_URL", "http://127.0.0.1:8008")
-        self.bucket_url = os.getenv("BUCKET_URL", "http://127.0.0.1:8005")
+        self.prompt_runner_url = ConfigManager.get_service_url("prompt_runner")
+        self.creator_core_url = ConfigManager.get_service_url("creator_core")
+        self.bhiv_core_url = ConfigManager.get_service_url("bhiv_core")
+        self.cet_url = ConfigManager.get_service_url("cet")
+        self.sarathi_url = ConfigManager.get_service_url("sarathi")
+        self.gate_url = ConfigManager.get_service_url("gate")
+        self.bucket_url = ConfigManager.get_service_url("bucket")
         self.artifact_graph = ArtifactGraph(self.bucket_url)
         self.telemetry_path = Path("bhiv_bucket") / "insightflow_events.jsonl"
         self.input_adapters = {
@@ -435,6 +447,7 @@ app = FastAPI(
 app.middleware("http")(security_middleware)
 app.middleware("http")(auth_middleware)
 app.middleware("http")(observability_middleware)
+app.middleware("http")(request_metrics_middleware)
 
 bridge = BHIVIntegrationBridge()
 
@@ -467,6 +480,12 @@ async def pipeline_health(http_req: Request):
 async def health(http_req: Request):
     """Alias for pipeline health check used by orchestrator"""
     return await pipeline_health(http_req)
+
+
+@app.get("/internal/metrics-snapshot")
+async def internal_metrics_snapshot():
+    """Expose runtime request metrics snapshot for control plane aggregation."""
+    return get_local_metrics_snapshot()
 
 @app.get("/pipeline/replay/{trace_id}", dependencies=[Depends(require_auth)])
 async def replay_pipeline(trace_id: str):

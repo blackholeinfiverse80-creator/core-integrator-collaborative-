@@ -1,0 +1,77 @@
+{
+  "generated_at": "2026-07-08T10:51:05.694423+00:00",
+  "services": {
+    "prompt_runner": {
+      "status": "healthy",
+      "pid": 26472,
+      "port": 8003,
+      "restarts": 2,
+      "last_restart_at": "2026-07-08T10:10:43.558000+00:00"
+    },
+    "creator_core": {
+      "status": "healthy",
+      "pid": 17232,
+      "port": 8000,
+      "restarts": 3,
+      "last_restart_at": "2026-07-08T10:10:50.110945+00:00"
+    },
+    "bhiv_core": {
+      "status": "CRASH_LOOPING",
+      "pid": 25548,
+      "port": 8001,
+      "restarts": 2,
+      "last_restart_at": "2026-07-08T09:56:56.721389+00:00"
+    },
+    "integration_bridge": {
+      "status": "healthy",
+      "pid": 21644,
+      "port": 8004,
+      "restarts": 2,
+      "last_restart_at": "2026-07-08T10:11:22.369404+00:00"
+    },
+    "bucket": {
+      "status": "healthy",
+      "pid": 8244,
+      "port": 8005,
+      "restarts": 3,
+      "last_restart_at": "2026-07-08T10:11:18.798706+00:00"
+    },
+    "cet": {
+      "status": "healthy",
+      "pid": 24420,
+      "port": 8006,
+      "restarts": 3,
+      "last_restart_at": "2026-07-08T10:10:56.146932+00:00"
+    },
+    "sarathi": {
+      "status": "healthy",
+      "pid": 22756,
+      "port": 8007,
+      "restarts": 3,
+      "last_restart_at": "2026-07-08T10:11:02.182525+00:00"
+    },
+    "gate": {
+      "status": "healthy",
+      "pid": 17312,
+      "port": 8008,
+      "restarts": 4,
+      "last_restart_at": "2026-07-08T10:11:12.234979+00:00"
+    },
+    "control_plane": {
+      "status": "healthy",
+      "pid": 22100,
+      "port": 8009,
+      "restarts": 3,
+      "last_restart_at": "2026-07-08T10:11:39.523642+00:00"
+    },
+    "telemetry": {
+      "status": "healthy",
+      "pid": 19340,
+      "port": 8010,
+      "restarts": 4,
+      "last_restart_at": "2026-07-08T10:11:32.488000+00:00"
+    }
+  },
+  "uptime_seconds": 3963.619,
+  "shutting_down": false
+}

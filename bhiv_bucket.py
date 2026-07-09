@@ -18,6 +18,7 @@ from typing import Dict, Any, List, Optional
 
 # All first-class artifact types in the live pipeline (A1 → A4 including authority stages)
 ARTIFACT_TYPES = [
+    "telemetry",
     "instruction",
     "blueprint",
     "contract",
@@ -25,6 +26,7 @@ ARTIFACT_TYPES = [
     "gate",
     "execution",
     "result",
+    "alert",
 ]
 
 

@@ -15,7 +15,12 @@ if not Path(".env").exists() and Path(".env.template").exists():
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from core.service_orchestrator import ServiceOrchestrator
+REPO_ROOT = Path(__file__).resolve().parent
+SPRINT_DIR = REPO_ROOT / "SHAKTI Production Convergence Sprint (Energy Intelligence Platform Production Transition)"
+if str(SPRINT_DIR) not in sys.path:
+    sys.path.insert(0, str(SPRINT_DIR))
+
+from runtime_manager import RuntimeManager
 import logging
 
 # Setup logging
@@ -35,19 +40,19 @@ def main():
         print("+" + "="*68 + "+")
         print()
         
-        # Create and run orchestrator
-        orchestrator = ServiceOrchestrator()
+        # Create and run runtime manager
+        manager = RuntimeManager()
         
         # Show startup plan
-        orchestrator.print_startup_plan()
+        manager.print_startup_plan()
         
         # Start all services
-        if orchestrator.start_services(wait_for_health=True, health_check_timeout=30):
+        if manager.start_services(wait_for_health=True, health_check_timeout=30):
             print("\n[OK] All services started successfully!")
             print("\nService URLs:")
             print("-" * 70)
             
-            for service_name in orchestrator.get_startup_order():
+            for service_name in manager.get_startup_order():
                 try:
                     from config import ConfigManager
                     url = ConfigManager.get_service_url(service_name)
@@ -59,7 +64,7 @@ def main():
             print("\nMonitoring services... (Press Ctrl+C to stop)")
             
             # Monitor services continuously
-            orchestrator.monitor_services(check_interval=5)
+            manager.monitor_services(check_interval=5)
         else:
             print("\n[ERROR] Failed to start all services")
             print("Check the logs above for details")
