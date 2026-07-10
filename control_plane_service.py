@@ -49,10 +49,10 @@ def _collect_service_metrics() -> Dict[str, Dict[str, Any]]:
     return snapshots
 
 
-def _alerts_from_bucket(limit: int = 100) -> List[Dict[str, Any]]:
+def _alerts_from_bucket(limit: int = 25) -> List[Dict[str, Any]]:
     traces = _safe_get_json(f"{bucket_url}/bucket/traces?limit={limit}").get("traces", [])
     alert_records = []
-    for trace in traces:
+    for trace in traces[:limit]:
         trace_id = trace.get("trace_id")
         if not trace_id:
             continue
@@ -62,6 +62,13 @@ def _alerts_from_bucket(limit: int = 100) -> List[Dict[str, Any]]:
                 alert_records.append(artifact.get("data", {}))
     alert_records.sort(key=lambda x: x.get("raised_at", ""), reverse=True)
     return alert_records
+
+
+def _overall_status_from_runtime(runtime: Dict[str, Any]) -> str:
+    for service in runtime.get("services", {}).values():
+        if service.get("status") in ("unhealthy", "CRASH_LOOPING"):
+            return "degraded"
+    return "ok"
 
 
 @app.get("/health")
@@ -79,7 +86,7 @@ async def metrics():
     total_err = sum(v.get("error_requests", 0) for v in flat)
     p50s = [v.get("latency_ms", {}).get("p50", 0) for v in flat]
     p95s = [v.get("latency_ms", {}).get("p95", 0) for v in flat]
-    alerts = _alerts_from_bucket(limit=50)
+    alerts = _alerts_from_bucket(limit=25)
     replay_stats = _safe_get_json(f"{bhiv_core_url}/replay/statistics")
     return {
         "active_services": sum(1 for s in runtime.get("services", {}).values() if s.get("status") == "healthy"),
@@ -99,12 +106,8 @@ async def metrics():
 @app.get("/system/status")
 async def system_status():
     runtime = read_status()
-    alerts = _alerts_from_bucket(limit=50)
-    overall = "ok"
-    for service in runtime.get("services", {}).values():
-        if service.get("status") in ("unhealthy", "CRASH_LOOPING"):
-            overall = "degraded"
-            break
+    alerts = _alerts_from_bucket(limit=25)
+    overall = _overall_status_from_runtime(runtime)
     return {
         "overall_status": overall,
         "services": runtime.get("services", {}),
@@ -116,8 +119,9 @@ async def system_status():
 
 @app.get("/dashboard/executive")
 async def dashboard_executive():
+    runtime = read_status()
     dashboard = _safe_get_json(f"{bucket_url}/bucket/dashboard")
-    alerts = _alerts_from_bucket(limit=100)
+    alerts = _alerts_from_bucket(limit=25)
     severities = {}
     for alert in alerts:
         sev = alert.get("severity", "unknown")
@@ -127,7 +131,7 @@ async def dashboard_executive():
         "total_pipeline_executions_today": total_traces,
         "success_rate": None,
         "active_alerts_by_severity": severities,
-        "overall_system_status": (await system_status())["overall_status"],
+        "overall_system_status": _overall_status_from_runtime(runtime),
     }
 
 
@@ -150,7 +154,7 @@ async def dashboard_operations():
 @app.get("/dashboard/alerts")
 async def dashboard_alerts():
     cache = get_alert_ring_buffer()
-    persistent = _alerts_from_bucket(limit=100)
+    persistent = _alerts_from_bucket(limit=25)
     combined = cache + [a for a in persistent if a.get("alert_id") not in {c.get("alert_id") for c in cache}]
     combined.sort(key=lambda x: x.get("raised_at", ""), reverse=True)
     return {"alerts": combined}
@@ -163,7 +167,7 @@ async def dashboard_runtime():
 
 @app.get("/dashboard/telemetry")
 async def dashboard_telemetry():
-    traces = _safe_get_json(f"{bucket_url}/bucket/traces?limit=100").get("traces", [])
+    traces = _safe_get_json(f"{bucket_url}/bucket/traces?limit=25").get("traces", [])
     telemetry = []
     classifications = {"nominal": 0, "warning": 0, "critical": 0}
     for trace in traces:
