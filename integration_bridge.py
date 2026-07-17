@@ -497,6 +497,77 @@ async def replay_pipeline(trace_id: str):
         raise HTTPException(status_code=404, detail=result["message"])
     return result
 
+# ── Product Integration Routes ──────────────────────────────────────────────
+
+from src.adapters.tantra_bridge import TANTRAIntegrationBridge
+
+_tantra_bridge = None
+
+def _get_tantra() -> TANTRAIntegrationBridge:
+    global _tantra_bridge
+    if _tantra_bridge is None:
+        _tantra_bridge = TANTRAIntegrationBridge()
+    return _tantra_bridge
+
+
+class TTGRequest(BaseModel):
+    game_type: str
+    theme: Optional[str] = ""
+    difficulty: Optional[str] = "medium"
+    player_count: Optional[int] = 1
+    description: Optional[str] = ""
+
+
+class TTVRequest(BaseModel):
+    video_type: str
+    topic: Optional[str] = ""
+    duration: Optional[str] = "5min"
+    style: Optional[str] = "standard"
+    voice: Optional[str] = "neutral"
+    description: Optional[str] = ""
+
+
+@app.post("/pipeline/ttg", dependencies=[Depends(require_auth)])
+async def ttg_pipeline(request: TTGRequest):
+    """Execute full pipeline for TTG product via TANTRA bridge."""
+    result = _get_tantra().process_ttg_request(request.dict())
+    if result["status"] == "error":
+        raise HTTPException(status_code=500, detail=result["error"])
+    return result
+
+
+@app.post("/pipeline/ttv", dependencies=[Depends(require_auth)])
+async def ttv_pipeline(request: TTVRequest):
+    """Execute full pipeline for TTV product via TANTRA bridge."""
+    result = _get_tantra().process_ttv_request(request.dict())
+    if result["status"] == "error":
+        raise HTTPException(status_code=500, detail=result["error"])
+    return result
+
+
+@app.post("/pipeline/content", dependencies=[Depends(require_auth)])
+async def content_pipeline(request: PipelineRequest, http_req: Request):
+    """Execute full pipeline for AI Content Platform."""
+    trace_id = request.trace_id or http_req.state.trace_id
+    workflow_id = request.workflow_id or http_req.state.workflow_id
+    result = bridge.process_full_pipeline(request.prompt, trace_id, workflow_id, "content")
+    if result["status"] == "error":
+        raise HTTPException(status_code=500, detail=result["error"])
+    return result
+
+
+@app.get("/pipeline/ttg/health")
+async def ttg_health():
+    """Validate TTG system boundaries."""
+    return _get_tantra().validate_system_boundaries()
+
+
+@app.get("/pipeline/ttv/health")
+async def ttv_health():
+    """Validate TTV system boundaries."""
+    return _get_tantra().validate_system_boundaries()
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8004)

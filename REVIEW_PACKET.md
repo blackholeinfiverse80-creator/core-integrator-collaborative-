@@ -1,7 +1,44 @@
 # REVIEW_PACKET
 
 **Supersedes:** previous root `REVIEW_PACKET.md` (2026-07-07 development-ready packet)  
-**Updated:** 2026-07-09  
+**Updated:** 2026-06-20  
+**Sprint:** Production Deployment Validation — Creator Core Ecosystem Integration (TTG + TTV + AI Content Platform)
+
+---
+
+## ⚡ Latest Review Packet
+
+**Primary review source:** [`review_packets/2026-06-20_production_deployment_validation/`](review_packets/2026-06-20_production_deployment_validation/)
+
+| Document | Purpose |
+|----------|---------|
+| [ENTRY_POINT.md](review_packets/2026-06-20_production_deployment_validation/ENTRY_POINT.md) | How to start, port map, env vars |
+| [EXECUTION_FLOW.md](review_packets/2026-06-20_production_deployment_validation/EXECUTION_FLOW.md) | Full pipeline + TTG/TTV/AI Content Platform flows |
+| [CHANGED_FILES.md](review_packets/2026-06-20_production_deployment_validation/CHANGED_FILES.md) | All modified and new files |
+| [API_PROOF.md](review_packets/2026-06-20_production_deployment_validation/API_PROOF.md) | All endpoint contracts with sample payloads |
+| [DEPLOYMENT_PROOF.md](review_packets/2026-06-20_production_deployment_validation/DEPLOYMENT_PROOF.md) | Deployment, replay, recovery, observability proof |
+| [CODE_PACKETS/INDEX.md](review_packets/2026-06-20_production_deployment_validation/CODE_PACKETS/INDEX.md) | Code review packets with priority |
+| [TEST_RESULTS/TEST_RESULTS.md](review_packets/2026-06-20_production_deployment_validation/TEST_RESULTS/TEST_RESULTS.md) | Test cases + acceptance criteria |
+| [LOGS/LOGS.md](review_packets/2026-06-20_production_deployment_validation/LOGS/LOGS.md) | Log format + sample runtime logs |
+| [SCREENSHOTS/README.md](review_packets/2026-06-20_production_deployment_validation/SCREENSHOTS/README.md) | Screenshot capture guide |
+
+### New Deliverables (2026-06-20)
+
+| Deliverable | Status |
+|-------------|--------|
+| TTG consuming Creator Core runtime | ✅ `POST /pipeline/ttg` |
+| TTV consuming Creator Core runtime | ✅ `POST /pipeline/ttv` |
+| AI Content Platform consuming runtime | ✅ `POST /pipeline/content` |
+| Cross-product execution proof | ✅ API_PROOF.md |
+| Replay proof | ✅ DEPLOYMENT_PROOF.md |
+| Recovery proof | ✅ DEPLOYMENT_PROOF.md |
+| Observability proof | ✅ DEPLOYMENT_PROOF.md |
+| No constitutional boundary violations | ✅ CHANGED_FILES.md |
+
+---
+
+## Previous Sprint (SHAKTI — 2026-07-09)
+
 **Sprint:** SHAKTI Production Convergence Sprint — Energy Intelligence Platform Production Transition
 
 This packet supersedes the prior review because continuous runtime management, telemetry-to-alert spine execution, control-plane observability/dashboard APIs, automated test coverage, and operational evidence now exist and were validated.
