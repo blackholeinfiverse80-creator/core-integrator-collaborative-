@@ -6,7 +6,36 @@
 
 ---
 
-## ⚡ Latest Review Packet
+## ⚡ Latest Review Packet — Control Plane API Integration (2026-06-20)
+
+**Primary review source:** [`review_packets/2026-06-20_control_plane_api_integration/`](review_packets/2026-06-20_control_plane_api_integration/)
+
+| Document | Purpose |
+|----------|---------|
+| [API_PROOF.md](review_packets/2026-06-20_control_plane_api_integration/API_PROOF.md) | All 7 endpoint contracts with full sample JSON for Pratik |
+| [CHANGED_FILES.md](review_packets/2026-06-20_control_plane_api_integration/CHANGED_FILES.md) | What changed, why, data sources per endpoint |
+| [CODE_PACKETS/INDEX.md](review_packets/2026-06-20_control_plane_api_integration/CODE_PACKETS/INDEX.md) | Code review packet for `control_plane_service.py` |
+| [TEST_RESULTS/TEST_RESULTS.md](review_packets/2026-06-20_control_plane_api_integration/TEST_RESULTS/TEST_RESULTS.md) | Validation commands + acceptance criteria |
+| [SCREENSHOTS/README.md](review_packets/2026-06-20_control_plane_api_integration/SCREENSHOTS/README.md) | Screenshot capture guide |
+
+### Control Plane Endpoints (all live, no mocks)
+
+| Endpoint | Status | Data Source |
+|----------|--------|-------------|
+| `GET /health` | ✅ Live | Process uptime |
+| `GET /metrics` | ✅ Live | Runtime Manager + metrics snapshots + bucket + replay |
+| `GET /system/status` | ✅ Live | Runtime Manager + bucket alerts |
+| `GET /dashboard/runtime` | ✅ Live | Runtime Manager state file |
+| `GET /dashboard/operations` | ✅ Live | Bucket stats + metrics + replay |
+| `GET /dashboard/alerts` | ✅ Live | Alert ring buffer + bucket artifacts |
+| `GET /dashboard/telemetry` | ✅ Live | InsightFlow events + per-trace artifacts + thresholds |
+
+**Swagger UI:** `http://localhost:8009/docs`  
+**OpenAPI JSON:** `http://localhost:8009/openapi.json`
+
+---
+
+## Previous Packet — Production Deployment Validation (2026-06-20)
 
 **Primary review source:** [`review_packets/2026-06-20_production_deployment_validation/`](review_packets/2026-06-20_production_deployment_validation/)
 
