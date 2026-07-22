@@ -431,6 +431,7 @@ class BHIVIntegrationBridge:
 
 # Integration API endpoints
 from fastapi import FastAPI, HTTPException, Request, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from src.utils.security_hardening import security_middleware
 from src.utils.auth import auth_middleware, require_auth
@@ -440,6 +441,18 @@ app = FastAPI(
     title="BHIV Integration Bridge",
     description="Full pipeline orchestrator: Prompt Runner → Creator Core → BHIV Core → Bucket",
     version="1.0.0"
+)
+
+_raw_origins = os.getenv("CORS_ORIGINS", "*")
+_allow_origins = [o.strip() for o in _raw_origins.split(",")] if _raw_origins != "*" else ["*"]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_allow_origins,
+    allow_credentials=_raw_origins != "*",
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
+    expose_headers=["X-Trace-Id", "X-Request-Id", "X-Workflow-Id"],
+    max_age=600,
 )
 
 # Apply global security, auth, and observability middleware

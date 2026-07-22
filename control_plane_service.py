@@ -19,7 +19,7 @@ from typing import Any, Dict, List
 
 import requests
 from fastapi import FastAPI, Query
-from fastapi.openapi.utils import get_openapi
+from fastapi.middleware.cors import CORSMiddleware
 
 from config import ConfigManager
 
@@ -53,6 +53,21 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
+)
+
+# CORS — allow all origins by default; restrict via CORS_ORIGINS env var in production
+# e.g. CORS_ORIGINS=https://dashboard.bhiv.io,https://app.bhiv.io
+_raw_origins = os.getenv("CORS_ORIGINS", "*")
+_allow_origins = [o.strip() for o in _raw_origins.split(",")] if _raw_origins != "*" else ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_allow_origins,
+    allow_credentials=_raw_origins != "*",  # credentials only when origins are explicit
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["*"],
+    expose_headers=["X-Trace-Id", "X-Request-Id"],
+    max_age=600,
 )
 
 

@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from fastapi import FastAPI, HTTPException, Depends, Request
+from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Dict, Any, Optional
 import os
 import sqlite3
@@ -37,6 +38,18 @@ app = FastAPI(
     title="Unified Backend Bridge",
     description="Central orchestration layer for Finance, Education, and Creator agents",
     version="1.0.0"
+)
+
+_raw_origins = os.getenv("CORS_ORIGINS", "*")
+_allow_origins = [o.strip() for o in _raw_origins.split(",")] if _raw_origins != "*" else ["*"]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_allow_origins,
+    allow_credentials=_raw_origins != "*",
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
+    expose_headers=["X-Trace-Id", "X-Request-Id"],
+    max_age=600,
 )
 
 # Middleware order: last-added runs first in FastAPI (LIFO).
