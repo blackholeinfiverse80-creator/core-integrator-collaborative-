@@ -1,0 +1,625 @@
+name: BHIV Core Integrator Production CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+env:
+  IMAGE_NAME: bhiv/core-integrator
+  DEPLOY_DIR: /bhiv-core-integrator
+
+jobs:
+
+  # ============================================================
+  # 1. VALIDATE
+  # ============================================================
+  validate:
+    name: Validate Application
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set short Git SHA
+        id: vars
+        run: |
+          echo "sha_short=$(git rev-parse --short=7 HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Python syntax validation
+        run: |
+          python -m compileall -q .
+
+      - name: Create temporary environment file
+        run: |
+          mkdir -p environments
+          cat <<'EOF' > environments/.env
+          ${{ secrets.CORE_INTEGRATOR_ENV_FILE }}
+          EOF
+
+      - name: Validate Docker Compose
+        env:
+          IMAGE_TAG: ${{ steps.vars.outputs.sha_short }}
+        run: |
+          docker compose config
+
+      - name: Check required production files
+        run: |
+          test -f Dockerfile
+          test -f docker-compose.yml
+          test -f start_all.py
+          test -f requirements.txt
+
+          echo "Production files validated successfully."
+
+  # ============================================================
+  # 2. BUILD + TEST + PUSH
+  # ============================================================
+  build_test_push:
+    name: Build Test and Push Docker Image
+    runs-on: ubuntu-latest
+    needs: validate
+
+    outputs:
+      sha_short: ${{ steps.vars.outputs.sha_short }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set short Git SHA
+        id: vars
+        run: |
+          echo "sha_short=$(git rev-parse --short=7 HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # --------------------------------------------------------
+      # Build image locally first
+      # --------------------------------------------------------
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t ${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.sha_short }} \
+            -t ${{ env.IMAGE_NAME }}:latest \
+            .
+
+      # --------------------------------------------------------
+      # Basic container test
+      # --------------------------------------------------------
+      - name: Start container for smoke test
+        run: |
+          docker run -d \
+            --name core-integrator-test \
+            -e AUTH_ENABLED=false \
+            -e DB_PATH=data/context.db \
+            -e NONCE_DB_PATH=data/nonce_store.db \
+            -e LOG_LEVEL=INFO \
+            -e PYTHONPATH=/app:/app/src:/app/creator-core/Core-Integrator-Sprint-1.1 \
+            ${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.sha_short }}
+
+      - name: Wait for application startup
+        run: |
+          echo "Waiting for Core Integrator container..."
+
+          for i in {1..12}; do
+            if docker ps --filter "name=core-integrator-test" --filter "status=running" -q | grep -q .; then
+              echo "Container is running."
+              break
+            fi
+
+            if [ "$i" -eq 12 ]; then
+              echo "Container failed to start."
+              docker logs core-integrator-test || true
+              exit 1
+            fi
+
+            sleep 5
+          done
+
+      - name: Verify container process
+        run: |
+          STATUS=$(docker inspect \
+            --format='{{.State.Status}}' \
+            core-integrator-test)
+
+          echo "Container status: $STATUS"
+
+          if [ "$STATUS" != "running" ]; then
+            docker logs core-integrator-test
+            exit 1
+          fi
+
+      - name: Show application logs
+        if: always()
+        run: |
+          docker logs --tail=100 core-integrator-test || true
+
+      - name: Remove test container
+        if: always()
+        run: |
+          docker rm -f core-integrator-test || true
+
+      # --------------------------------------------------------
+      # Push only after successful build/test
+      # --------------------------------------------------------
+      - name: Push SHA image
+        run: |
+          docker push \
+            ${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.sha_short }}
+
+      - name: Push latest image
+        run: |
+          docker push \
+            ${{ env.IMAGE_NAME }}:latest
+
+  # ============================================================
+  # 3. DEPLOY TO VM
+  # ============================================================
+  deploy:
+    name: Deploy to Production VM
+    runs-on: ubuntu-latest
+    needs: build_test_push
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install SSH tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y sshpass
+
+      # --------------------------------------------------------
+      # Create deployment directory
+      # --------------------------------------------------------
+      - name: Create deployment directory
+        run: |
+          sshpass -p "${{ secrets.VM_PASSWORD }}" \
+          ssh \
+            -p "${{ secrets.VM_PORT }}" \
+            -o StrictHostKeyChecking=no \
+            "${{ secrets.VM_USERNAME }}@${{ secrets.VM_IP }}" \
+            "mkdir -p '${{ env.DEPLOY_DIR }}/environments'"
+
+      # --------------------------------------------------------
+      # Copy ONLY docker-compose.yml
+      # --------------------------------------------------------
+      - name: Copy Docker Compose file
+        run: |
+          sshpass -p "${{ secrets.VM_PASSWORD }}" \
+          scp \
+            -P "${{ secrets.VM_PORT }}" \
+            -o StrictHostKeyChecking=no \
+            docker-compose.yml \
+            "${{ secrets.VM_USERNAME }}@${{ secrets.VM_IP }}:${{ env.DEPLOY_DIR }}/docker-compose.yml"
+
+      # --------------------------------------------------------
+      # Create .env from GitHub Secret directly on VM
+      # --------------------------------------------------------
+      - name: Create production environment file
+        run: |
+          sshpass -p "${{ secrets.VM_PASSWORD }}" \
+          ssh \
+            -p "${{ secrets.VM_PORT }}" \
+            -o StrictHostKeyChecking=no \
+            "${{ secrets.VM_USERNAME }}@${{ secrets.VM_IP }}" \
+            "bash -s" <<'EOF'
+
+          set -euo pipefail
+
+          mkdir -p "${{ env.DEPLOY_DIR }}/environments"
+
+          cat > "${{ env.DEPLOY_DIR }}/environments/.env" <<'ENVFILE'
+          ${{ secrets.CORE_INTEGRATOR_ENV_FILE }}
+          ENVFILE
+
+          chmod 600 "${{ env.DEPLOY_DIR }}/environments/.env"
+
+          EOF
+
+      # --------------------------------------------------------
+      # Deploy
+      # --------------------------------------------------------
+      - name: Deploy Core Integrator
+        run: |
+          sshpass -p "${{ secrets.VM_PASSWORD }}" \
+          ssh \
+            -p "${{ secrets.VM_PORT }}" \
+            -o StrictHostKeyChecking=no \
+            "${{ secrets.VM_USERNAME }}@${{ secrets.VM_IP }}" \
+            "bash -s" <<'EOF'
+
+          set -euo pipefail
+
+          DEPLOY_DIR="${{ env.DEPLOY_DIR }}"
+          IMAGE_TAG="${{ needs.build_test_push.outputs.sha_short }}"
+
+          cd "$DEPLOY_DIR"
+
+          echo "=========================================="
+          echo "BHIV Core Integrator Deployment"
+          echo "=========================================="
+          echo "Image: bhiv/core-integrator:${IMAGE_TAG}"
+          echo "Directory: ${DEPLOY_DIR}"
+          echo "=========================================="
+
+          # ----------------------------------------------------
+          # Verify Docker
+          # ----------------------------------------------------
+          docker version
+          docker compose version
+
+          # ----------------------------------------------------
+          # Save currently running version for rollback
+          # ----------------------------------------------------
+          CURRENT_TAG=""
+
+          if docker inspect core-integrator-suite >/dev/null 2>&1; then
+
+            CURRENT_IMAGE=$(docker inspect \
+              --format='{{.Config.Image}}' \
+              core-integrator-suite)
+
+            CURRENT_TAG="${CURRENT_IMAGE##*:}"
+
+            echo "Currently deployed image: ${CURRENT_IMAGE}"
+            echo "Current tag: ${CURRENT_TAG}"
+
+          elif [ -f .last_successful_tag ]; then
+
+            CURRENT_TAG=$(cat .last_successful_tag)
+
+            echo "Previous successful tag: ${CURRENT_TAG}"
+
+          else
+
+            echo "No previous deployment found."
+            echo "This appears to be the first deployment."
+
+          fi
+
+          # Save candidate rollback version
+          if [ -n "$CURRENT_TAG" ]; then
+            echo "$CURRENT_TAG" > .previous_tag
+          else
+            rm -f .previous_tag
+          fi
+
+          # ----------------------------------------------------
+          # Set IMAGE_TAG for Docker Compose interpolation
+          # ----------------------------------------------------
+          export IMAGE_TAG="${IMAGE_TAG}"
+
+          echo "Deploying image:"
+          echo "  ${IMAGE_NAME:-bhiv/core-integrator}:${IMAGE_TAG}"
+
+          # ----------------------------------------------------
+          # Validate Compose
+          # ----------------------------------------------------
+          docker compose config
+
+          # ----------------------------------------------------
+          # Login to Docker Hub
+          # ----------------------------------------------------
+          echo "${{ secrets.DOCKER_PASSWORD }}" | \
+            docker login \
+              --username "${{ secrets.DOCKER_USERNAME }}" \
+              --password-stdin
+
+          # ----------------------------------------------------
+          # Pull exact immutable SHA image
+          # ----------------------------------------------------
+          docker compose pull
+
+          # ----------------------------------------------------
+          # Start new deployment
+          # ----------------------------------------------------
+          docker compose up -d --remove-orphans
+
+          # ----------------------------------------------------
+          # Logout from Docker Hub
+          # ----------------------------------------------------
+          docker logout
+
+          # ----------------------------------------------------
+          # Show deployment status
+          # ----------------------------------------------------
+          docker compose ps
+
+          # ----------------------------------------------------
+          # Health check
+          # ----------------------------------------------------
+          echo ""
+          echo "Waiting for Core Integrator to become healthy..."
+
+          HEALTHY=0
+
+          for i in {1..18}; do
+
+            echo "Health check attempt ${i}/18..."
+
+            CONTAINER_STATUS=$(docker inspect \
+              --format='{{.State.Status}}' \
+              core-integrator-suite 2>/dev/null || echo "missing")
+
+            HEALTH_STATUS=$(docker inspect \
+              --format='{{.State.Health.Status}}' \
+              core-integrator-suite 2>/dev/null || echo "missing")
+
+            echo "Container status: ${CONTAINER_STATUS}"
+            echo "Docker health: ${HEALTH_STATUS}"
+
+            # External VM-side health check.
+            if curl -fsS \
+              --max-time 10 \
+              http://127.0.0.1:8120/system/status \
+              >/tmp/core-integrator-health.json; then
+
+              echo "Control Plane health endpoint responded successfully."
+
+              cat /tmp/core-integrator-health.json
+
+              if [ "${HEALTH_STATUS}" = "healthy" ]; then
+                HEALTHY=1
+                break
+              fi
+
+            else
+              echo "Control Plane endpoint is not ready yet."
+            fi
+
+            if [ "${CONTAINER_STATUS}" = "exited" ] || \
+               [ "${CONTAINER_STATUS}" = "dead" ]; then
+
+              echo "Container stopped unexpectedly."
+              docker compose ps
+              docker compose logs --tail=100
+
+              exit 1
+            fi
+
+            sleep 10
+
+          done
+
+          # ----------------------------------------------------
+          # Deployment failed
+          # ----------------------------------------------------
+          if [ "$HEALTHY" -ne 1 ]; then
+
+            echo ""
+            echo "=========================================="
+            echo "DEPLOYMENT HEALTH CHECK FAILED"
+            echo "=========================================="
+
+            docker compose ps
+            docker compose logs --tail=150
+
+            exit 1
+          fi
+
+          # ----------------------------------------------------
+          # Deployment successful
+          # ----------------------------------------------------
+          echo ""
+          echo "=========================================="
+          echo "DEPLOYMENT SUCCESSFUL"
+          echo "=========================================="
+
+          echo "${IMAGE_TAG}" > .last_successful_tag
+
+          # Remove temporary rollback marker
+          rm -f .previous_tag
+
+          # Keep useful Docker cache, remove dangling images
+          docker image prune -f
+
+          echo "Successfully deployed:"
+          echo "bhiv/core-integrator:${IMAGE_TAG}"
+
+          EOF
+
+  # ============================================================
+  # 4. AUTOMATIC ROLLBACK
+  # ============================================================
+  rollback:
+    name: Automatic Rollback
+    runs-on: ubuntu-latest
+
+    needs:
+      - build_test_push
+      - deploy
+
+    if: always() && needs.deploy.result == 'failure'
+
+    steps:
+
+      - name: Install SSH tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y sshpass
+
+      - name: Rollback production deployment
+        run: |
+          sshpass -p "${{ secrets.VM_PASSWORD }}" \
+          ssh \
+            -p "${{ secrets.VM_PORT }}" \
+            -o StrictHostKeyChecking=no \
+            "${{ secrets.VM_USERNAME }}@${{ secrets.VM_IP }}" \
+            "bash -s" <<'EOF'
+
+          set -euo pipefail
+
+          DEPLOY_DIR="${{ env.DEPLOY_DIR }}"
+
+          cd "$DEPLOY_DIR"
+
+          echo "=========================================="
+          echo "AUTOMATIC ROLLBACK"
+          echo "=========================================="
+
+          # ----------------------------------------------------
+          # Determine previous healthy version
+          # ----------------------------------------------------
+          ROLLBACK_TAG=""
+
+          if [ -f .previous_tag ]; then
+            ROLLBACK_TAG=$(cat .previous_tag)
+          elif [ -f .last_successful_tag ]; then
+            ROLLBACK_TAG=$(cat .last_successful_tag)
+          fi
+
+          if [ -z "$ROLLBACK_TAG" ]; then
+
+            echo "No previous successful deployment found."
+            echo "Rollback is not possible because this was the first deployment."
+
+            docker compose ps || true
+            docker compose logs --tail=150 || true
+
+            exit 1
+          fi
+
+          echo "Rolling back to:"
+          echo "bhiv/core-integrator:${ROLLBACK_TAG}"
+
+          # ----------------------------------------------------
+          # Set rollback image
+          # ----------------------------------------------------
+          export IMAGE_TAG="${ROLLBACK_TAG}"
+
+          # ----------------------------------------------------
+          # Validate Compose
+          # ----------------------------------------------------
+          docker compose config
+
+          # ----------------------------------------------------
+          # Docker Hub login
+          # ----------------------------------------------------
+          echo "${{ secrets.DOCKER_PASSWORD }}" | \
+            docker login \
+              --username "${{ secrets.DOCKER_USERNAME }}" \
+              --password-stdin
+
+          # ----------------------------------------------------
+          # Pull previous known-good image
+          # ----------------------------------------------------
+          docker compose pull
+
+          # ----------------------------------------------------
+          # Restart using previous version
+          # ----------------------------------------------------
+          docker compose up -d --remove-orphans
+
+          docker logout
+
+          # ----------------------------------------------------
+          # Rollback health check
+          # ----------------------------------------------------
+          echo ""
+          echo "Waiting for rollback deployment to become healthy..."
+
+          HEALTHY=0
+
+          for i in {1..18}; do
+
+            echo "Rollback health check ${i}/18..."
+
+            CONTAINER_STATUS=$(docker inspect \
+              --format='{{.State.Status}}' \
+              core-integrator-suite 2>/dev/null || echo "missing")
+
+            HEALTH_STATUS=$(docker inspect \
+              --format='{{.State.Health.Status}}' \
+              core-integrator-suite 2>/dev/null || echo "missing")
+
+            echo "Container status: ${CONTAINER_STATUS}"
+            echo "Docker health: ${HEALTH_STATUS}"
+
+            if curl -fsS \
+              --max-time 10 \
+              http://127.0.0.1:8120/system/status \
+              >/tmp/core-integrator-rollback-health.json; then
+
+              cat /tmp/core-integrator-rollback-health.json
+
+              if [ "${HEALTH_STATUS}" = "healthy" ]; then
+                HEALTHY=1
+                break
+              fi
+
+            fi
+
+            if [ "${CONTAINER_STATUS}" = "exited" ] || \
+               [ "${CONTAINER_STATUS}" = "dead" ]; then
+
+              echo "Rollback container stopped unexpectedly."
+
+              docker compose ps
+              docker compose logs --tail=150
+
+              exit 1
+            fi
+
+            sleep 10
+
+          done
+
+          # ----------------------------------------------------
+          # Rollback failed
+          # ----------------------------------------------------
+          if [ "$HEALTHY" -ne 1 ]; then
+
+            echo ""
+            echo "=========================================="
+            echo "ROLLBACK FAILED"
+            echo "=========================================="
+
+            docker compose ps
+            docker compose logs --tail=150
+
+            exit 1
+          fi
+
+          # ----------------------------------------------------
+          # Rollback successful
+          # ----------------------------------------------------
+          echo ""
+          echo "=========================================="
+          echo "ROLLBACK SUCCESSFUL"
+          echo "=========================================="
+
+          echo "${ROLLBACK_TAG}" > .last_successful_tag
+
+          rm -f .previous_tag
+
+          docker image prune -f
+
+          echo "Production restored to:"
+          echo "bhiv/core-integrator:${ROLLBACK_TAG}"
+
+          EOF
+```

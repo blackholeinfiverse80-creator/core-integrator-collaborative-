@@ -22,7 +22,7 @@ COPY . .
 RUN mkdir -p data logs
 
 # Set environment variables
-ENV PYTHONPATH=/app
+ENV PYTHONPATH=/app:/app/src:/app/creator-core/Core-Integrator-Sprint-1.1
 ENV PYTHONUNBUFFERED=1
 
 # Expose ports for all microservices in the Shakti/Tantra suite

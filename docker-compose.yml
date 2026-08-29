@@ -1,53 +1,55 @@
-version: '3.8'
-
 services:
-  # Shakti / Tantra Production Suite (All services running together via Orchestrator)
+  # Shakti / Tantra Production Suite
   core-integrator-suite:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: bhiv/core-integrator:${IMAGE_TAG}
+      
+
     container_name: core-integrator-suite
+
     ports:
-      - "8000:8000"  # Creator Core
-      - "8001:8001"  # BHIV Core
-      - "8003:8003"  # Prompt Runner
-      - "8004:8004"  # Integration Bridge
-      - "8005:8005"  # BHIV Bucket
-      - "8006:8006"  # CET Service
-      - "8007:8007"  # Sarathi Service
-      - "8008:8008"  # Gate Service
-      - "8009:8009"  # Control Plane Service
-      - "8010:8010"  # Telemetry Service
+      - "8104:8000"  # VM 8104 → Creator Core 8000
+      - "8105:8001"  # VM 8105 → BHIV Core 8001
+      - "8114:8003"  # VM 8114 → Prompt Runner 8003
+      - "8115:8004"  # VM 8115 → Integration Bridge 8004
+      - "8116:8005"  # VM 8116 → BHIV Bucket 8005
+      - "8117:8006"  # VM 8117 → CET Service 8006
+      - "8118:8007"  # VM 8118 → Sarathi Service 8007
+      - "8119:8008"  # VM 8119 → Gate Service 8008
+      - "8120:8009"  # VM 8120 → Control Plane 8009
+      - "8121:8010"  # VM 8121 → Telemetry 8010
+
     env_file:
-      - .env
+      - path: ./environments/.env
+        required: true
+
     environment:
       - AUTH_ENABLED=true
-      - AUTH_API_KEY=prod_shakti_tantra_secret_key_2026
-      - AUTH_SECRET_KEY=prod_shakti_tantra_secret_key_2026
       - DB_PATH=data/context.db
       - NONCE_DB_PATH=data/nonce_store.db
       - LOG_LEVEL=INFO
       - PYTHONPATH=/app:/app/src:/app/creator-core/Core-Integrator-Sprint-1.1
+
     volumes:
       - integrator_data:/app/data
       - integrator_logs:/app/logs
+
     networks:
       - shakti-network
+
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8009/system/status"]
       interval: 30s
       timeout: 15s
       retries: 3
       start_period: 20s
-      
-# Volume definitions for data persistence
+
 volumes:
   integrator_data:
     driver: local
+
   integrator_logs:
     driver: local
 
-# Custom network for container separation
 networks:
   shakti-network:
     driver: bridge
