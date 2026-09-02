@@ -10,7 +10,7 @@ permissions:
 
 env:
   IMAGE_NAME: bhiv/core-integrator
-  DEPLOY_DIR: /bhiv-core-integrator
+  DEPLOY_DIR: bhiv-core-integrator
 
 jobs:
 
